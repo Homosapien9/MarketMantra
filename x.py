@@ -58,20 +58,16 @@ with st.expander("Select Stock, Date Range and Technical Indicators ", expanded=
     
     selected_indicators = st.multiselect(
     "Select Technical Indicators to Display",
-    indicator_options,
+
     default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)"]  # default selected indicators
 )
 
-# Sidebar for technical indicators
-st.expander("Technical Indicators")
-st.header("Technical Indicators")
 indicator_options = [
     "50-Day Simple Moving Average (SMA)",
     "200-Day Simple Moving Average (SMA)",
     "MACD (Moving Average Convergence Divergence)",
     "Stochastic Oscillator"
 ]
-
 if "50-Day Simple Moving Average (SMA)" in selected_indicators:
     sma_50 = True
 else:
