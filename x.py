@@ -2,23 +2,15 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 import yfinance as yf
+from PIL import Image
 import streamlit as st
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn import metrics
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
 from datetime import datetime
-
-
 
 # Define a helper function for stock data
 def get_stock_data(stock_symbol, start_date, end_date):
@@ -30,16 +22,6 @@ def get_stock_data(stock_symbol, start_date, end_date):
         st.error(f"Error fetching stock data: {e}")
         return pd.DataFrame()
 
-# Helper function to calculate RSI
-def compute_rsi(df, window=14):
-    delta = df['Close'].diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.rolling(window=window, min_periods=1).mean()
-    avg_loss = loss.rolling(window=window, min_periods=1).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
 
 # Helper function to calculate MACD
 def compute_macd(df, fast=12, slow=26, signal=9):
@@ -54,13 +36,24 @@ def compute_stochastic(df, window=14):
     stochastic = 100 * (df['Close'] - low_min) / (high_max - low_min)
     return stochastic
 
-# Sidebar setup
-st.title("Stock Market Trend Predictor")
-st.subheader("~ by Jatan Shah")
+qr_image = Image.open("MarketMantra_website.png")  # Replace with your QR code file
+
+col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
+
+# Title in Column 1
+with col1:
+    st.markdown('<h1 style="color: Cyan; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
+
+# QR Code in Column 2
+with col2:
+    st.image(qr_image, caption="scan for webite", width=100)  # Adjust size as needed
+col1, col2 = st.columns(2)
+with col2:
+    st.subheader("~ Made By Jatan Shah")
 
 # Sidebar for stock selection
 st.sidebar.header("Stock Selection")
-stock_symbol = st.sidebar.selectbox("Select Stock Ticker", ["JSWSTEEL.NS", "AAPL", "TSLA", "AMZN", "GOOGL", "MSFT", "NFLX", "META"])
+stock_symbol = st.sidebar.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
 
 # Sidebar for stock history
 start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2024-01-01"))
@@ -71,7 +64,6 @@ st.sidebar.header("Technical Indicators")
 indicator_options = [
     "50-Day Simple Moving Average (SMA)",
     "200-Day Simple Moving Average (SMA)",
-    "RSI (Relative Strength Index)",
     "MACD (Moving Average Convergence Divergence)",
     "Stochastic Oscillator"
 ]
@@ -91,11 +83,6 @@ if "200-Day Simple Moving Average (SMA)" in selected_indicators:
 else:
     sma_200 = False
 
-if "RSI (Relative Strength Index)" in selected_indicators:
-    rsi = True
-else:
-    rsi = False
-
 if "MACD (Moving Average Convergence Divergence)" in selected_indicators:
     macd = True
 else:
@@ -105,19 +92,11 @@ if "Stochastic Oscillator" in selected_indicators:
     stochastic = True
 else:
     stochastic = False
-# Sidebar for portfolio and watchlist tabs
-tab = st.sidebar.selectbox("Portfolio & Watchlist", ["Portfolio", "Watchlist"])
+    
 
-# Portfolio and Watchlist Management
-# Initialize portfolio and watchlist in session_state if they do not exist
-if 'portfolio' not in st.session_state:
-    st.session_state['portfolio'] = []
-
-if 'watchlist' not in st.session_state:
-    st.session_state['watchlist'] = []
 
 # Sidebar setup for Portfolio & Watchlist Management
-st.sidebar.header("Manage Portfolio & Watchlist")
+st.sidebar.header("Portfolio & Watchlist")
 
 # Select tab for adding stocks to portfolio or watchlist
 portfolio_add = st.sidebar.button("Add to Portfolio")
@@ -177,42 +156,44 @@ scaler = StandardScaler()
 features_scaled = scaler.fit_transform(features)
 
 # Split data
+# Split data
 X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)
 
 # Model Setup
 models = {
-    "Logistic Regression": LogisticRegression(),
-    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42),
-    "Support Vector Classifier (SVC)": SVC(kernel="rbf", gamma='scale', C=1),
-    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42),
-    "K-Nearest Neighbors (KNN)": KNeighborsClassifier(n_neighbors=5),
-    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42),
-    "Decision Tree": DecisionTreeClassifier(random_state=42),
-    "Naive Bayes": GaussianNB(),
-    "Neural Network (MLP)": MLPClassifier(max_iter=1000, random_state=42)
+    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=15, random_state=45),
+    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=10, max_depth=15, random_state=45),
+    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=15, learning_rate=10, random_state=45),
+    "Decision Tree": DecisionTreeClassifier(random_state=45)
 }
 
-# Train and store model accuracies
-model_accuracies = {}
+# Initialize a list to store predictions
+model_predictions = []
+
+# Train models and store predictions
 for model_name, model in models.items():
     with st.spinner(f"Training {model_name}..."):
-        model.fit(X_train, Y_train)
-        y_pred = model.predict(X_valid)
-        accuracy = accuracy_score(Y_valid, y_pred) * 100
-        model_accuracies[model_name] = accuracy
+        model.fit(X_train, Y_train)  # Train the model
+        model_pred = model.predict(X_valid)  # Get predictions
+        model_predictions.append(model_pred)  # Store predictions
 
-# Model selection
-selected_model = st.selectbox("Select Model for Accuracy", list(models.keys()))
-for model_name, accuracy in model_accuracies.items():
-    if model_name == selected_model:
-        st.write(f"{model_name}: {accuracy:.2f}%")
+# Convert list of predictions into a numpy array (shape: [n_models, n_samples])
+model_predictions = np.array(model_predictions)
 
-# Confusion Matrix
-st.subheader("Confusion Matrix")
-cm = confusion_matrix(Y_valid, models[selected_model].predict(X_valid))
+# Compute the average prediction (0 = Down, 1 = Up)
+average_predictions = np.mean(model_predictions, axis=0)
+
+# Round to get final prediction (0 or 1)
+final_predictions = np.round(average_predictions)
+
+# Calculate confusion matrix based on the averaged predictions
+cm = confusion_matrix(Y_valid, final_predictions)
+
+# Display confusion matrix
+st.subheader("Confusion Matrix (Averaged Model Predictions)")
 fig, ax = plt.subplots(figsize=(6, 6))
-ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-ax.figure.colorbar(ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues))
+cax = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+fig.colorbar(cax)
 classes = ['Down', 'Up']
 ax.set(xticks=np.arange(len(classes)),
        yticks=np.arange(len(classes)),
@@ -222,23 +203,39 @@ ax.set(xticks=np.arange(len(classes)),
 for i in range(cm.shape[0]):
     for j in range(cm.shape[1]):
         ax.text(j, i, format(cm[i, j], 'd'), ha="center", va="center", color="black")
+
 st.pyplot(fig)
 
+# display individual model accuracy
+model_accuracies = {}
+for model_name, model in models.items():
+    model.fit(X_train, Y_train)
+    y_pred = model.predict(X_valid)
+    accuracy = accuracy_score(Y_valid, y_pred) * 100
+    model_accuracies[model_name] = accuracy
+
+# Select model to display accuracy
+selected_model = st.selectbox("Select Model for Accuracy", list(models.keys()))
+for model_name, accuracy in model_accuracies.items():
+    if model_name == selected_model:
+        st.write(f"{model_name}: {accuracy:.2f}%")
 # Real-time Prediction Section
 st.subheader("Real-time Prediction for the Latest Data")
 latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1, -1)
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-# Display recommendation with button and icon
-st.subheader("Recommendation for Tomorrow's Trading")
-if predicted_trend == 1:
-    st.write(":green[**Recommendation:** Hold the stock for tomorrow.]")
-else:
-    st.write(":red[**Recommendation:** Sell the stock for tomorrow.]")
-tab1, tab2 = st.tabs(["Portfolio", "Watchlist"])
+#defining tabs
+tab1, tab2, tab3, tab4 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "predictions"])
 
-# portf
+# Initialize portfolio and watchlist in session_state if they do not exist
+if 'portfolio' not in st.session_state:
+    st.session_state['portfolio'] = []
+
+if 'watchlist' not in st.session_state:
+    st.session_state['watchlist'] = []
+
+# portfolio
 with tab1:
     st.header("Your Portfolio")
     if st.session_state['portfolio']:
@@ -256,9 +253,11 @@ with tab2:
     else:
         st.write("Your Watchlist is empty.")
 # Technical Indicators
-with st.expander("Technical Indicators (SMA(50 and 200 day),RSI, MACD, Stochastic)"):
+with tab3:
     if sma_50:
-        df['SMA_50'] = df['Close'].rolling(window=50).mean()
+        st.header("Simple Moving Average (SMA) of 50 Days")
+        st.write("The **50-day** SMA looks at the average price over the last 50 days")
+        df['SMA_50'] = df['Close'].rolling(window=200).mean()
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(df['SMA_50'], label="50-Day SMA", color='orange')
         ax.set_title(f"{stock_symbol} - 50-Day Simple Moving Average", fontsize=15)
@@ -268,7 +267,9 @@ with st.expander("Technical Indicators (SMA(50 and 200 day),RSI, MACD, Stochasti
         st.pyplot(fig)
 
     if sma_200:
-        df['SMA_200'] = df['Close'].rolling(window=200).mean()
+        st.header("Simple Moving Average (SMA) of 200 Days")
+        st.write("The **200-day** SMA looks at the average price over the last 200 days")
+        df['SMA_200'] = df['Close'].rolling(window=50).mean()
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(df['SMA_200'], label="200-Day SMA", color='green')
         ax.set_title(f"{stock_symbol} - 200-Day Simple Moving Average", fontsize=15)
@@ -277,19 +278,12 @@ with st.expander("Technical Indicators (SMA(50 and 200 day),RSI, MACD, Stochasti
         ax.legend(loc='best')
         st.pyplot(fig)
 
-    if rsi:
-        df['RSI'] = compute_rsi(df)
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(df['RSI'], label="RSI", color='purple')
-        ax.axhline(70, linestyle='--', color='red')
-        ax.axhline(30, linestyle='--', color='green')
-        ax.set_title(f"{stock_symbol} - Relative Strength Index (RSI)", fontsize=15)
-        ax.set_ylabel('RSI', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)
-
     if macd:
+        st.header("MACD (Moving Average Convergence Divergence)")
+        st.write("It helps us understand if the stock price is likely to go up or down.")
+        st.write("**Its margings are:**")
+        st.write("If the **MACD line** is **higher** than the **signal line**, it means the stock price could go **up**.")
+        st.write("If the **MACD line** is **lower** than the **signal line**, it means the stock price could go **down**.")
         macd_line, signal_line = compute_macd(df)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(macd_line, label="MACD", color='blue')
@@ -301,6 +295,11 @@ with st.expander("Technical Indicators (SMA(50 and 200 day),RSI, MACD, Stochasti
         st.pyplot(fig)
 
     if stochastic:
+        st.header("stochastic oscillator")
+        st.write("It helps to see if a stock is high or low compared to its recent prices.")
+        st.write("**Its margings are:**")
+        st.write("If the value is above _**80**_, it might mean the stock is _**high (and could come down)**_.")
+        st.write("If the value is below _**20**_, it might mean the stock is _**low (and could go up)**_.")
         stochastic_oscillator = compute_stochastic(df)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(stochastic_oscillator, label="Stochastic Oscillator", color='green')
@@ -311,38 +310,13 @@ with st.expander("Technical Indicators (SMA(50 and 200 day),RSI, MACD, Stochasti
         ax.set_xlabel('Date', fontsize=12)
         ax.legend(loc='best')
         st.pyplot(fig)
-        ax.axhline(70, linestyle='--', color='red')
-        ax.axhline(30, linestyle='--', color='green')
-        ax.set_title(f"{stock_symbol} - Relative Strength Index (RSI)", fontsize=15)
-        ax.set_ylabel('RSI', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)
 
-    if macd:
-        macd_line, signal_line = compute_macd(df)
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(macd_line, label="MACD", color='blue')
-        ax.plot(signal_line, label="Signal Line", color='orange')
-        ax.set_title(f"{stock_symbol} - MACD", fontsize=15)
-        ax.set_ylabel('Value', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)
-
-    if stochastic:
-        stochastic_oscillator = compute_stochastic(df)
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(stochastic_oscillator, label="Stochastic Oscillator", color='green')
-        ax.axhline(80, linestyle='--', color='red')
-        ax.axhline(20, linestyle='--', color='blue')
-        ax.set_title(f"{stock_symbol} - Stochastic Oscillator", fontsize=15)
-        ax.set_ylabel('Stochastic Value', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)
-        latest_market_price = current_stock.history(period='1d')['Close'].iloc[-1]
-        st.subheader("Real-time Market Price")
-        st.markdown(f"The real-time market price of **{stock_symbol}** is :green[**{latest_market_price:.2f}**].")
-    except Exception as e:
-        st.error(f"Error fetching real-time stock price: {e}")
+# Display recommendation with button and icon
+with tab4:
+   st.subheader("Predictions for Tomorrow's Trading")
+   if predicted_trend == 1:
+       st.write(":green[**Recommendation:** Hold/Buy the stock for tomorrow.]")
+       st.write("**Stock price may go up**")
+   else:
+       st.write(":red[**Recommendation:** Sell the stock for tomorrow.]")
+       st.write("**Stock price may go down**")
