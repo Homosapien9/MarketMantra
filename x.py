@@ -111,7 +111,7 @@ with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     stock_symbol = st.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
-with st.expander("select Technical Indicators"):
+with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
     indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index",]
     selected_indicators = st.multiselect("Select Technical Indicators to Display",indicator_options,default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)",]  )
