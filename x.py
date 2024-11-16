@@ -96,7 +96,7 @@ col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
 
 # Title in Column 1
 with col1:
-    st.markdown('<h1 style="color: green; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: white; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
 
 # QR Code in Column 2
 with col2:
