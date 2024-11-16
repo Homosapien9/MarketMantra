@@ -3,6 +3,7 @@ import pandas as pd
 import yfinance as yf
 import xgboost as xgb
 import plotly.graph_objects as go
+from sklearn.tree import DecisionTreeClassifier
 import streamlit as st
 from PIL import Image
 import matplotlib.pyplot as plt
