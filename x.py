@@ -51,13 +51,20 @@ col1, col2 = st.columns(2)
 with col2:
     st.subheader("~ Made By Jatan Shah")
 
-with st.expander("Select Stock and Date Range", expanded=True):
+with st.expander("Select Stock, Date Range and Technical Indicators ", expanded=True):
     stock_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL)", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", value=pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", value=datetime.now().date())
+    
+    selected_indicators = st.multiselect(
+    "Select Technical Indicators to Display",
+    indicator_options,
+    default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)"]  # default selected indicators
+)
 
 # Sidebar for technical indicators
-st.sidebar.header("Technical Indicators")
+st.expander("Technical Indicators")
+st.header("Technical Indicators")
 indicator_options = [
     "50-Day Simple Moving Average (SMA)",
     "200-Day Simple Moving Average (SMA)",
@@ -65,11 +72,6 @@ indicator_options = [
     "Stochastic Oscillator"
 ]
 
-selected_indicators = st.expander.multiselect(
-    "Select Technical Indicators to Display",
-    indicator_options,
-    default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)"]  # default selected indicators
-)
 if "50-Day Simple Moving Average (SMA)" in selected_indicators:
     sma_50 = True
 else:
@@ -93,7 +95,7 @@ else:
 
 
 # Sidebar setup for Portfolio & Watchlist Management
-st.sidebar.header("Portfolio & Watchlist")
+st.expander.header("Add to Portfolio & Watchlist")
 
 # Select tab for adding stocks to portfolio or watchlist
 portfolio_add = st.button("Add to Portfolio")
