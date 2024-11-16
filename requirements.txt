@@ -6,3 +6,4 @@ Pillow
 streamlit
 matplotlib
 scikit-learn
+plotly
