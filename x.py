@@ -12,6 +12,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix
 from datetime import datetime
 
+def get_stock_data(ticker, start_date, end_date):
+    stock_data = yf.download(ticker, start=start_date, end=end_date)
+    return stock_data
 # Helper functions for technical indicators
 def compute_bollinger_bands(df, window=20, num_std=2):
     rolling_mean = df['Close'].rolling(window=window).mean()
