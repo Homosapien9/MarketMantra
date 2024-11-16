@@ -96,7 +96,7 @@ col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
 
 # Title in Column 1
 with col1:
-    st.markdown('<h1 style="color: Cyan; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: green; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
 
 # QR Code in Column 2
 with col2:
@@ -106,11 +106,12 @@ with col2:
     st.subheader("~ Made By Jatan Shah")
 
 # Sidebar for stock history
-with st.expander("select stock selection,data range and technical indicators"):
+with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     st.header("Stock Selection")
     stock_symbol = st.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
+with st.expander("select Technical Indicators"):
     st.header("Technical Indicators")
     indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index",]
     selected_indicators = st.multiselect("Select Technical Indicators to Display",indicator_options,default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)",]  )
