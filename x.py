@@ -1,303 +1,134 @@
-import numpy as np
+# Import necessary libraries
 import pandas as pd
+import numpy as np
 import yfinance as yf
-import xgboost as xgb
-import plotly.graph_objects as go
-from sklearn.tree import DecisionTreeClassifier
 import streamlit as st
-from PIL import Image
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, confusion_matrix
+import tensorflow as tf
+import plotly.graph_objects as go
+import seaborn as sns
 from datetime import datetime
+from sklearn.preprocessing import MinMaxScaler
+import time
+import matplotlib.pyplot as plt
 
-def get_stock_data(ticker, start_date, end_date):
-    stock_data = yf.download(ticker, start=start_date, end=end_date)
+# Helper Functions
+def fetch_stock_data(ticker, interval="1m", period="1d"):
+    """Fetch real-time stock data."""
+    stock_data = yf.download(ticker, interval=interval, period=period)
     return stock_data
-# Helper functions for technical indicators
-def compute_bollinger_bands(df, window=20, num_std=2):
-    rolling_mean = df['Close'].rolling(window=window).mean()
-    rolling_std = df['Close'].rolling(window=window).std()
-    upper_band = rolling_mean + (rolling_std * num_std)
-    lower_band = rolling_mean - (rolling_std * num_std)
-    return upper_band, lower_band
 
-def compute_rsi(df, window=14):
-    delta = df['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
-    rs = gain / loss
+def compute_technical_indicators(df):
+    """Compute technical indicators like SMA, EMA, RSI, MACD."""
+    # SMA and EMA
+    df['SMA_50'] = df['Close'].rolling(window=50).mean()
+    df['SMA_200'] = df['Close'].rolling(window=200).mean()
+    df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
+    df['EMA_50'] = df['Close'].ewm(span=50, adjust=False).mean()
+    
+    # RSI
+    df['RSI'] = compute_rsi(df['Close'])
+    
+    # MACD
+    df['MACD'] = df['EMA_12'] - df['EMA_26']
+    df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
+    
+    return df
+
+def compute_rsi(series, period=14):
+    """Calculate Relative Strength Index (RSI)."""
+    delta = series.diff()
+    gain = np.where(delta > 0, delta, 0)
+    loss = np.where(delta < 0, -delta, 0)
+    avg_gain = pd.Series(gain).rolling(window=period).mean()
+    avg_loss = pd.Series(loss).rolling(window=period).mean()
+    rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
-def compute_macd(df, fast=12, slow=26, signal=9):
-    macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
-    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
-    return macd_line, signal_line
+def prepare_data(df):
+    """Prepare data for TensorFlow model training."""
+    scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(df[['Close']])
+    X, y = [], []
+    for i in range(60, len(scaled_data)):
+        X.append(scaled_data[i-60:i])
+        y.append(scaled_data[i])
+    X, y = np.array(X), np.array(y)
+    return X, y, scaler
 
-# Initialize session state variables
-if 'portfolio' not in st.session_state:
-    st.session_state['portfolio'] = []
-if 'watchlist' not in st.session_state:
-    st.session_state['watchlist'] = []
+def build_and_train_model(X, y):
+    """Build and train LSTM model using TensorFlow."""
+    model = tf.keras.Sequential([
+        tf.keras.layers.LSTM(50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])),
+        tf.keras.layers.LSTM(50, return_sequences=False),
+        tf.keras.layers.Dense(25),
+        tf.keras.layers.Dense(1)
+    ])
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.fit(X, y, batch_size=32, epochs=5)
+    return model
 
-# Load QR code image
-qr_image = Image.open("MarketMantra_website.png")
-
-# Layout with columns
-col1, col2 = st.columns([4, 1])
-with col1:
-    st.markdown('<h1 style="color: Cyan; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
-with col2:
-    st.image(qr_image, caption="Scan for website", width=100)
-    st.subheader("~ Made By Jatan Shah")
-
-# Expander for input
-with st.expander("Select Stock, Date Range, and Technical Indicators", expanded=True):
-    stock_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL)", value="JSWSTEEL.NS")
-    start_date = st.date_input("Start Date", value=pd.to_datetime("2024-01-01"))
-    end_date = st.date_input("End Date", value=datetime.now().date())
-    
-    selected_indicators = st.multiselect(
-        "Select Technical Indicators to Display",
-        [
-            "50-Day Simple Moving Average (SMA)",
-            "200-Day Simple Moving Average (SMA)",
-            "MACD (Moving Average Convergence Divergence)",
-            "Stochastic Oscillator",
-            "Bollinger Bands",
-            "Relative Strength Index (RSI)"
-        ],
-        default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)"]
-    )
+# Streamlit UI layout
+st.title("Stock Market Trend Prediction and Technical Analysis")
+st.sidebar.subheader("Stock Ticker and Time Range")
+ticker = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL)", value="AAPL")
+start_date = st.sidebar.date_input("Start Date", value=pd.to_datetime("2023-01-01"))
+end_date = st.sidebar.date_input("End Date", value=datetime.now().date())
 
 # Fetch stock data
-df = get_stock_data(stock_symbol, start_date, end_date)
+df = yf.download(ticker, start=start_date, end=end_date)
+
 if df.empty:
-    st.warning("No data found for the selected stock or date range.")
-    st.stop()
-
-# Candlestick chart generation using Plotly
-def plot_candlestick(df):
-    fig = go.Figure(data=[go.Candlestick(x=df.index,
-                                        open=df['Open'],
-                                        high=df['High'],
-                                        low=df['Low'],
-                                        close=df['Close'],
-                                        increasing_line_color='green', decreasing_line_color='red')])
-    fig.update_layout(title=f'{stock_symbol} Candlestick Chart', xaxis_title='Date', yaxis_title='Price')
-    st.plotly_chart(fig, use_container_width=True)
-
-# Plot the Candlestick Chart
-with st.expander("Candlestick Chart", expanded=True):
-    plot_candlestick(df)
-
-# Data visualization and processing
-with st.expander("Data Visualization"):
-    st.subheader(f"Closing Price for {stock_symbol}")
-    fig, ax = plt.subplots(figsize=(15, 5))
-    ax.plot(df['Close'], label="Close Price", color="blue")
-    ax.set_title(f"{stock_symbol} Closing Price", fontsize=15)
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Price")
-    ax.legend()
+    st.warning(f"No data found for {ticker}. Please check the ticker symbol or date range.")
+else:
+    # Technical Indicators Computation
+    df = compute_technical_indicators(df)
+    
+    # Data Visualization using Seaborn
+    st.subheader(f"Closing Price and Technical Indicators for {ticker}")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.lineplot(data=df[['Close', 'SMA_50', 'SMA_200']], ax=ax)
+    ax.set_title(f'{ticker} Closing Price and Moving Averages')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price (USD)')
     st.pyplot(fig)
 
-# Feature Engineering and Model Preparation
-df['Previous Close'] = df['Close'].shift(1)
-df['Daily Return'] = df['Close'].pct_change()
-df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
-df.dropna(inplace=True)
+    # Real-time stock data display
+    st.subheader("Real-Time Stock Price (Updated Every 5 Seconds)")
+    real_time_data = fetch_stock_data(ticker, interval="1m", period="1d")
+    st.write(f"Current Price: ${real_time_data['Close'].iloc[-1]:.2f}")
+    st.line_chart(real_time_data['Close'], width=700, height=300)
 
-# Add additional features
-df['RSI'] = compute_rsi(df)
-upper_band, lower_band = compute_bollinger_bands(df)
-df['Bollinger Upper'] = upper_band
-df['Bollinger Lower'] = lower_band
-
-# Prepare features and target
-features = df[['Previous Close', 'Daily Return', 'RSI', 'Bollinger Upper', 'Bollinger Lower']].values
-target = df['Target'].values
-
-# Scaling features
-scaler = StandardScaler()
-features_scaled = scaler.fit_transform(features)
-
-# Split data
-X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)
-
-# Model Setup
-models = {
-    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=15, random_state=45),
-    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=15, random_state=45),
-    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=15, learning_rate=0.1, random_state=45),
-    "Decision Tree": DecisionTreeClassifier(random_state=45)
-}
-
-# Train models and store predictions
-model_predictions = []
-model_accuracies = {}
-for model_name, model in models.items():
-    with st.spinner(f"Training {model_name}..."):
-        model.fit(X_train, Y_train)
-        model_pred = model.predict(X_valid)
-        model_predictions.append(model_pred)
-        
-        # Model accuracy
-        accuracy = accuracy_score(Y_valid, model_pred) * 100
-        model_accuracies[model_name] = accuracy
-
-# Display accuracies of all models
-st.subheader("Model Performance Metrics")
-for model_name, accuracy in model_accuracies.items():
-    st.write(f"{model_name}: {accuracy:.2f}%")
-
-# Compute the average prediction (0 = Down, 1 = Up)
-model_predictions = np.array(model_predictions)
-average_predictions = np.mean(model_predictions, axis=0)
-final_predictions = np.round(average_predictions)
-
-# Confusion Matrix
-cm = confusion_matrix(Y_valid, final_predictions)
-fig, ax = plt.subplots(figsize=(6, 6))
-cax = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-fig.colorbar(cax)
-classes = ['Down', 'Up']
-ax.set(xticks=np.arange(len(classes)),
-       yticks=np.arange(len(classes)),
-       xticklabels=classes, yticklabels=classes,
-       title="Confusion Matrix",
-       ylabel="True Label", xlabel="Predicted Label")
-for i in range(cm.shape[0]):
-    for j in range(cm.shape[1]):
-        ax.text(j, i, format(cm[i, j], 'd'), ha="center", va="center", color="black")
-st.pyplot(fig)
-
-# Continue with other tabs (Portfolio and Watchlist)
-tab1, tab2, tab3, tab4 = st.tabs(["Portfolio", "Watchlist", "Technical Indicators", "Predictions"])
-# Continued from previous code...
-
-# Portfolio Tab
-with tab1:
-    st.subheader("Portfolio")
-    st.write("Manage your stock portfolio by adding or removing stocks.")
+    # Prepare data for LSTM model
+    X, y, scaler = prepare_data(df)
     
-    stock_name = st.text_input("Enter Stock Symbol to Add to Portfolio", value="")
-    if st.button("Add Stock to Portfolio"):
-        if stock_name and stock_name not in st.session_state['portfolio']:
-            st.session_state['portfolio'].append(stock_name)
-            st.success(f"Added {stock_name} to your portfolio!")
-        elif stock_name in st.session_state['portfolio']:
-            st.warning(f"{stock_name} is already in your portfolio.")
-        else:
-            st.warning("Please enter a stock symbol to add.")
-
-    # Display portfolio
-    st.write("Your Current Portfolio:")
-    if st.session_state['portfolio']:
-        for stock in st.session_state['portfolio']:
-            st.write(f"- {stock}")
-    else:
-        st.write("No stocks in your portfolio yet.")
-
-    # Option to remove stock
-    remove_stock = st.selectbox("Select Stock to Remove", st.session_state['portfolio'], index=0)
-    if st.button("Remove Selected Stock"):
-        if remove_stock:
-            st.session_state['portfolio'].remove(remove_stock)
-            st.success(f"Removed {remove_stock} from your portfolio!")
-        else:
-            st.warning("Please select a stock to remove.")
-
-# Watchlist Tab
-with tab2:
-    st.subheader("Watchlist")
-    st.write("Manage your stock watchlist to track stocks you're interested in.")
+    # Train TensorFlow Model
+    model = build_and_train_model(X, y)
     
-    watchlist_stock = st.text_input("Enter Stock Symbol to Add to Watchlist", value="")
-    if st.button("Add Stock to Watchlist"):
-        if watchlist_stock and watchlist_stock not in st.session_state['watchlist']:
-            st.session_state['watchlist'].append(watchlist_stock)
-            st.success(f"Added {watchlist_stock} to your watchlist!")
-        elif watchlist_stock in st.session_state['watchlist']:
-            st.warning(f"{watchlist_stock} is already in your watchlist.")
-        else:
-            st.warning("Please enter a stock symbol to add.")
+    # Predict using the trained model
+    pred_data = real_time_data[['Close']].values
+    scaled_pred = scaler.transform(pred_data[-60:].reshape(-1, 1))
+    scaled_pred = scaled_pred.reshape(1, 60, 1)
+    predicted_price = model.predict(scaled_pred)
+    predicted_price = scaler.inverse_transform(predicted_price)
 
-    # Display watchlist
-    st.write("Your Current Watchlist:")
-    if st.session_state['watchlist']:
-        for stock in st.session_state['watchlist']:
-            st.write(f"- {stock}")
-    else:
-        st.write("No stocks in your watchlist yet.")
+    st.subheader(f"Predicted Next Price for {ticker}")
+    st.write(f"Predicted Price: ${predicted_price[0][0]:.2f}")
 
-    # Option to remove stock
-    remove_watchlist_stock = st.selectbox("Select Stock to Remove from Watchlist", st.session_state['watchlist'], index=0)
-    if st.button("Remove Selected Stock"):
-        if remove_watchlist_stock:
-            st.session_state['watchlist'].remove(remove_watchlist_stock)
-            st.success(f"Removed {remove_watchlist_stock} from your watchlist!")
-        else:
-            st.warning("Please select a stock to remove.")
+    # More charts using Plotly
+    st.subheader(f"MACD and Signal Line for {ticker}")
+    fig_macd = go.Figure()
+    fig_macd.add_trace(go.Scatter(x=df.index, y=df['MACD'], mode='lines', name='MACD'))
+    fig_macd.add_trace(go.Scatter(x=df.index, y=df['Signal_Line'], mode='lines', name='Signal Line', line=dict(dash='dot')))
+    fig_macd.update_layout(title="MACD and Signal Line", xaxis_title="Date", yaxis_title="MACD Value")
+    st.plotly_chart(fig_macd, use_container_width=True)
 
-# Technical Indicators Tab
-with tab3:
-    st.header("Technical Indicators")
-    
-    if "50-Day Simple Moving Average (SMA)" in selected_indicators:
-        st.header("50-Day Simple Moving Average (SMA)")
-        df['SMA_50'] = df['Close'].rolling(window=50).mean()
-        st.line_chart(df['SMA_50'])
+    st.subheader(f"RSI for {ticker}")
+    fig_rsi = go.Figure(go.Scatter(x=df.index, y=df['RSI'], mode='lines', name='RSI', line=dict(color='orange')))
+    fig_rsi.update_layout(title="Relative Strength Index (RSI)", xaxis_title="Date", yaxis_title="RSI Value")
+    st.plotly_chart(fig_rsi, use_container_width=True)
 
-    if "200-Day Simple Moving Average (SMA)" in selected_indicators:
-        st.header("200-Day Simple Moving Average (SMA)")
-        df['SMA_200'] = df['Close'].rolling(window=200).mean()
-        st.line_chart(df['SMA_200'])
-
-    if "MACD (Moving Average Convergence Divergence)" in selected_indicators:
-        st.header("MACD")
-        macd_line, signal_line = compute_macd(df)
-        df['MACD'] = macd_line
-        df['MACD_Signal'] = signal_line
-        st.line_chart(df[['MACD', 'MACD_Signal']])
-
-    if "Bollinger Bands" in selected_indicators:
-        st.header("Bollinger Bands")
-        df['Bollinger Upper'] = upper_band
-        df['Bollinger Lower'] = lower_band
-        st.line_chart(df[['Bollinger Upper', 'Bollinger Lower']])
-
-    if "Relative Strength Index (RSI)" in selected_indicators:
-        st.header("Relative Strength Index (RSI)")
-        df['RSI'] = compute_rsi(df)
-        st.line_chart(df['RSI'])
-
-# Predictions Tab
-with tab4:
-    st.header("Stock Trend Predictions")
-    st.write(f"The predicted trend for {stock_symbol} over the next period based on the model ensemble is:")
-
-    prediction = "Up" if final_predictions[-1] == 1 else "Down"
-    st.write(f"**Predicted Trend**: {prediction}")
-
-    st.subheader("Prediction Metrics")
-    st.write(f"**Accuracy of Predictions**:")
-    for model_name, accuracy in model_accuracies.items():
-        st.write(f"{model_name}: {accuracy:.2f}%")
-
-    st.subheader("Model Performance: Confusion Matrix")
-    st.pyplot(fig)
-
-    st.subheader("Final Prediction Based on Model Voting")
-    if final_predictions[-1] == 1:
-        st.success("The model predicts an **UP** trend.")
-    else:
-        st.error("The model predicts a **DOWN** trend.")
-
-# Additional Customizations: Hover effects, animations, etc.
+# Mobile Friendly Customization
 st.markdown("""
     <style>
         .stButton>button {
@@ -319,6 +150,21 @@ st.markdown("""
         }
 
         .stTextInput label {
+            font-size: 14px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Additional Suggestions
+st.write("""
+    ## Suggestions:
+    - Explore different technical indicators and see how they affect your stock predictions.
+    - Monitor real-time stock prices for better decision-making.
+    - Use the TensorFlow model to predict stock trends in the short term.
+
+    Happy trading!
+""")
+
             font-size: 14px;
         }
     </style>
