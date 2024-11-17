@@ -95,14 +95,13 @@ col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
 
 # Title in Column 1
 with col1:
-    st.markdown('<h1 style="color: white; font-size: 30px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
-
+    st.markdown('<h1 style="color: white; font-size: 29.7px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col2:
+    st.subheader("~ Made By Jatan Shah")
 # QR Code in Column 2
 with col2:
     st.image(qr_image, caption="scan for webite", width=100)  # Adjust size as needed
-col1, col2 = st.columns(2)
-with col2:
-    st.subheader("~ Made By Jatan Shah")
 
 # Sidebar for stock history
 with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
