@@ -174,7 +174,7 @@ with st.expander("Data Visualization"):
     df = get_stock_data(stock_symbol, start_date, end_date)
     st.subheader(f"Stock Data for {stock_symbol}")
     st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
-    st.dataframe(df.tail()
+    st.dataframe(df.tail())
     if df.empty:
         st.warning("No data found for the selected asset or date range.")
         st.stop()
