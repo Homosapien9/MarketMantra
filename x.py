@@ -99,7 +99,7 @@ with col1:
 # QR Code in Column 2
 with col2:
     st.image(qr_image, caption="scan for webite", width=100)  # Adjust size as needed
-col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
     with col2:
         st.subheader("~ Made By Jatan Shah")
 # Sidebar for stock history
