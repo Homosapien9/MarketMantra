@@ -173,7 +173,7 @@ if watchlist_add:
 
 # Display stock data
 st.subheader(f"Stock Data for {stock_symbol}")
-st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")")
+st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
 st.dataframe(df.tail())
 
 # Data Visualization: Closing Price
