@@ -171,19 +171,19 @@ if watchlist_add:
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
 
-# Fetch stock data
-df = get_stock_data(stock_symbol, start_date, end_date)
-if df.empty:
-    st.warning("No data found for the selected asset or date range.")
-    st.stop()
-
 # Display stock data
 st.subheader(f"Stock Data for {stock_symbol}")
-st.write(f"Here is the historical asset data for {stock_symbol} from {start_date} to {end_date}.")
+st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")")
 st.dataframe(df.tail())
 
 # Data Visualization: Closing Price
 with st.expander("Data Visualization"):
+    # Fetch stock data
+    df = get_stock_data(stock_symbol, start_date, end_date)
+    if df.empty:
+        st.warning("No data found for the selected asset or date range.")
+        st.stop()
+        
     st.subheader("Closing Price Over Time")
     fig, ax = plt.subplots(figsize=(15, 5))
     ax.plot(df['Close'], label='Close Price', color='blue')
