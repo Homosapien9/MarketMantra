@@ -219,10 +219,10 @@ model_predictions = []
 
 # Train models and store predictions
 for model_name, model in models.items():
-    with st.spinner(f"Training {model_name}..."):
-        model.fit(X_train, Y_train)  # Train the model
-        model_pred = model.predict(X_valid)  # Get predictions
-        model_predictions.append(model_pred)  # Store predictions
+    model.fit(X_train, Y_train)  # Train the model
+    model_pred = model.predict(X_valid)  # Get predictions
+    model_predictions.append(model_pred)  # Store predictions
+
 
 # Convert list of predictions into a numpy array (shape: [n_models, n_samples])
 model_predictions = np.array(model_predictions)
