@@ -23,7 +23,6 @@ def get_stock_data(stock_symbol, start_date, end_date):
         st.error(f"Error fetching stock data: {e}")
         return pd.DataFrame()
 
-
 # Helper function to calculate MACD
 def compute_macd(df, fast=12, slow=26, signal=9):
     macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
@@ -96,7 +95,7 @@ col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
 
 # Title in Column 1
 with col1:
-    st.markdown('<h1 style="color: white; font-size: 30px;">MarketMantra - A Stock Trend Predictor</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: white; font-size: 30px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
 
 # QR Code in Column 2
 with col2:
@@ -106,8 +105,8 @@ with col2:
     st.subheader("~ Made By Jatan Shah")
 
 # Sidebar for stock history
-with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
-    st.header("Stock Selection")
+with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
+    st.header("Asset Selection")
     stock_symbol = st.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
@@ -175,12 +174,12 @@ if watchlist_add:
 # Fetch stock data
 df = get_stock_data(stock_symbol, start_date, end_date)
 if df.empty:
-    st.warning("No data found for the selected stock or date range.")
+    st.warning("No data found for the selected asset or date range.")
     st.stop()
 
 # Display stock data
 st.subheader(f"Stock Data for {stock_symbol}")
-st.write(f"Here is the historical stock data for {stock_symbol} from {start_date} to {end_date}.")
+st.write(f"Here is the historical asset data for {stock_symbol} from {start_date} to {end_date}.")
 st.dataframe(df.tail())
 
 # Data Visualization: Closing Price
@@ -303,7 +302,7 @@ with tab1:
                 st.session_state['portfolio'].remove(stock)
                 st.success(f"Removed {stock} from Portfolio!")
     else:
-        st.write("No stocks in your portfolio yet.")
+        st.write("No assets in your portfolio yet.")
         
 # Watchlist Tab
 with tab2:
@@ -319,7 +318,7 @@ with tab2:
                 st.session_state['watchlist'].remove(stock)
                 st.success(f"Removed {stock} from Watchlist!")
     else:
-        st.write("No stocks in your watchlist yet.")
+        st.write("No assets in your watchlist yet.")
 
 # Technical Indicators
 with tab3:
@@ -399,8 +398,8 @@ with tab3:
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
    if predicted_trend == 1:
-       st.write(":green[**Recommendation:** Hold/Buy the stock for tomorrow.]")
-       st.write("**Stock price may go up**")
+       st.write(":green[**Recommendation:** Hold/Buy the asset for tomorrow.]")
+       st.write("**Asset price may go up**")
    else:
-       st.write(":red[**Recommendation:** Sell the stock for tomorrow.]")
-       st.write("**Stock price may go down**")
+       st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
+       st.write("**Asset price may go down**")
