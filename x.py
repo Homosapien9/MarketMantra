@@ -142,6 +142,27 @@ if "(RSI)Relative Strength Index" in selected_indicators:
 else:
     RSI = False
 
+# Data Visualization: Closing Price
+with st.expander("Data Visualization"):
+    # Fetch stock data
+    df = get_stock_data(stock_symbol, start_date, end_date)
+    st.subheader(f"Stock Data for {stock_symbol}")
+    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
+    st.dataframe(df.tail())
+    if df.empty:
+        st.warning("No data found for the selected asset or date range.")
+        st.stop()
+        
+    st.subheader("Closing Price Over Time")
+    fig, ax = plt.subplots(figsize=(15, 5))
+    ax.plot(df['Close'], label='Close Price', color='blue')
+    ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
+    ax.set_ylabel('Price', fontsize=12)
+    ax.set_xlabel('Date', fontsize=12)
+    ax.grid(True)
+    plt.legend()
+    st.pyplot(fig)
+
 # Sidebar setup for Portfolio & Watchlist Management
 st.header("Portfolio & Watchlist")
 
@@ -167,28 +188,6 @@ if watchlist_add:
         st.success(f"{stock_symbol} added to Watchlist.")
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
-
-# Data Visualization: Closing Price
-with st.expander("Data Visualization"):
-    # Fetch stock data
-    df = get_stock_data(stock_symbol, start_date, end_date)
-    st.subheader(f"Stock Data for {stock_symbol}")
-    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
-    st.dataframe(df.tail())
-    if df.empty:
-        st.warning("No data found for the selected asset or date range.")
-        st.stop()
-        
-    st.subheader("Closing Price Over Time")
-    fig, ax = plt.subplots(figsize=(15, 5))
-    ax.plot(df['Close'], label='Close Price', color='blue')
-    ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
-    ax.set_ylabel('Price', fontsize=12)
-    ax.set_xlabel('Date', fontsize=12)
-    ax.grid(True)
-    plt.legend()
-    st.pyplot(fig)
-
 # Feature Engineering and Model Preparation
 df['Previous Close'] = df['Close'].shift(1)
 df['Daily Return'] = df['Close'].pct_change()
