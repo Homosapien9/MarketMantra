@@ -168,15 +168,13 @@ if watchlist_add:
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
 
-# Display stock data
-st.subheader(f"Stock Data for {stock_symbol}")
-st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
-st.dataframe(df.tail())
-
 # Data Visualization: Closing Price
 with st.expander("Data Visualization"):
     # Fetch stock data
     df = get_stock_data(stock_symbol, start_date, end_date)
+    st.subheader(f"Stock Data for {stock_symbol}")
+    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
+    st.dataframe(df.tail()
     if df.empty:
         st.warning("No data found for the selected asset or date range.")
         st.stop()
