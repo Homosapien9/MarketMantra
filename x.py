@@ -98,9 +98,8 @@ def compute_volumetric_data(df):
     df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Volume on downward price movement
     return df
         
-qr_image = Image.open("MarketMantra_website.png")  # Replace with your QR code file
-
-col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
+qr_image = Image.open("app QR.png")
+col1, col2 = st.columns([4, 1])
 
 # Title in Column 1
 with col1:
@@ -108,9 +107,8 @@ with col1:
     st.subheader("~ Made By Jatan Shah")
 # QR Code in Column 2
 with col2:
-    st.image(qr_image, caption="scan for webite", width=100)  # Adjust size as needed
+    st.image(qr_image, caption="scan for webite", width=100)
 
-# Sidebar for stock history
 with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     st.header("Asset Selection")
     stock_symbol = st.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
@@ -177,10 +175,8 @@ with st.expander("Data Visualization"):
     plt.legend()
     st.pyplot(fig)
 
-# Sidebar setup for Portfolio & Watchlist Management
 st.header("Portfolio & Watchlist")
 
-# Select tab for adding stocks to portfolio or watchlist
 col1, col2, col3, col4,= st.columns(4)
 with col1:
     portfolio_add = st.button("Add to Portfolio")
