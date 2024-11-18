@@ -90,11 +90,6 @@ def plot_bollinger_bands(df, window=20):
     st.pyplot(fig)
 
 def compute_volumetric_data(df):
-    """
-    Compute volumetric data by categorizing volume into buying and selling pressure.
-    Buying pressure occurs when the close price is higher than the open price, 
-    and selling pressure occurs when the close price is lower.
-    """
     df['Buy_Volume'] = df['Volume'].where(df['Close'] > df['Open'], 0)  # Volume on upward price movement
     df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Volume on downward price movement
     return df
@@ -105,7 +100,7 @@ col1, col2 = st.columns([4, 1])
 # Title in Column 1
 with col1:
     st.markdown('<h1 style="color: white; font-size: 29.7px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
-    st.subheader("~ Made By Jatan Shah")
+    st.subheader("~ Developed By Jatan Shah")
 # QR Code in Column 2
 with col2:
     st.image(qr_image, caption="scan for webite", width=100)
