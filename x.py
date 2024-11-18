@@ -401,11 +401,13 @@ with tab3:
 
     if volume:
         st.subheader("Volume Chart")
+        df['Date'] = df.index
+        df.set_index('Date', inplace=True)
         def compute_volumetric_data(df):
             df['Buy_Volume'] = df['Volume'].where(df['Close'] > df['Open'], 0)  # Buy volume
             df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Sell volume
             return df
-
+        
         def plot_volumetric_chart(df):
             st.write("Volume chart tracks the number of shares/contracts traded.")
             st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
@@ -414,7 +416,7 @@ with tab3:
             df = compute_volumetric_data(df)
 
             # Create the plot
-            fig, ax = plt.subplots(figsize=(15, 5))
+            fig, ax = plt.subplots(figsize=(15, 7))
 
             # Plot buying pressure
             ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
@@ -429,7 +431,7 @@ with tab3:
 
             # Display the plot in Streamlit
             st.pyplot(fig)
-            plot_volumetric_chart(df)
+        plot_volumetric_chart(df)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
