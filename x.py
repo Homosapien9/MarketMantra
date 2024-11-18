@@ -278,7 +278,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "Business News"])
+tab1, tab2, tab3, tab4 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions",])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -432,41 +432,3 @@ with tab4:
    else:
        st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
        st.write("**Asset price may go down**")
-# News Tab
-with tab5:
-    input_country = st.selectbox("Select the country:", [country.name for country in pycountry.countries])
-
-    # Get the country code
-    country_code = pycountry.countries.get(name=input_country).alpha_2
-
-    # Input for category selection
-    category = st.selectbox("Which category are you interested in?", ["Business", "Stocks", "Cryptocurrencies", "ETFs", "Mutual Funds"])
-
-    # Sample URLs (you can add more sources as needed)
-    news_urls = {
-        "Business": ["https://www.cnbc.com/business/", "https://www.reuters.com/finance"],
-        "Stocks": ["https://www.marketwatch.com/stocks/", "https://www.nasdaq.com/"],
-        "Cryptocurrencies": ["https://www.coindesk.com/", "https://www.cointelegraph.com/"],
-        "ETFs": ["https://www.etf.com/", "https://www.etftrends.com/"],
-        "Mutual Funds": ["https://www.morningstar.com/funds", "https://www.fundsupermart.com/"],
-    }
-
-    # Fetch the URLs based on the selected category
-    selected_urls = news_urls.get(category, [])
-
-    if selected_urls:
-        for url in selected_urls:
-            try:
-                article = Article(url)
-                article.download()
-                article.parse()
-                
-                # Extracting the article's title and content
-                st.markdown(f"### {article.title}")
-                st.markdown(f"**Published at:** {article.publish_date}")
-                st.write(article.text)
-                st.markdown(f"[Read full article]({url})")
-            except Exception as e:
-                st.write(f"Failed to fetch articles from {url}. Error: {str(e)}")
-    else:
-        st.write("No articles found for this category.")
