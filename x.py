@@ -435,53 +435,53 @@ with tab4:
        st.write("**Asset price may go down**")
 # News Tab
 with tab5:
-    st.subheader("Business News")
+  st.subheader("Business News")
 
-    # Initialize News API client
-    newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
+# Initialize News API client
+newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
 
-    # Streamlit input for country
-    input_country = st.text_input("Enter the name of the country:", "India")
+# Streamlit selectbox for selecting the country
+countries = {country.name: country.alpha_2 for country in pycountry.countries}
+country_names = list(countries.keys())
 
-    # Map country names to country codes using pycountry
-    countries = {country.name: country.alpha_2 for country in pycountry.countries}
+# Streamlit selectbox for country selection
+input_country = st.selectbox("Select the country:", country_names, index=country_names.index("India"))
 
-    # Check if the input country is valid
-    country_code = countries.get(input_country.strip().title(), None)
+# Get country code from selected country name
+country_code = countries.get(input_country.strip(), None)
 
-    if country_code:
-        # Now we will get the category input from the user
-        option = "Business"
+if country_code:
+    # Set the category for the News API (fixed as "Business")
+    option = "Business"
 
-        # Fetch the top headlines based on user input
-        try:
-            top_headlines = newsapi.get_top_headlines(
-                category=option.lower(),
-                language='en',
-                country=country_code.lower()
-            )
+    # Fetch the top headlines based on user input (Business news)
+    try:
+        top_headlines = newsapi.get_top_headlines(
+            category=option.lower(),
+            language='en',
+            country=country_code.lower()
+        )
 
-            # Extract the headlines from the response
-            articles = top_headlines['articles']
+        # Extract the headlines from the response
+        articles = top_headlines['articles']
 
-            if articles:
-                # Display articles in a structured format
-                for article in articles:
-                    title = article['title']
-                    source = article['source']['name']
-                    url = article['url']
-                    description = article['description']
+        if articles:
+            # Display articles in a structured format
+            for article in articles:
+                title = article['title']
+                source = article['source']['name']
+                url = article['url']
+                description = article['description']
 
-                    # Display the article details
-                    st.markdown(f"### {title}")
-                    st.markdown(f"**Source:** {source} | **Description:** {description}")
-                    st.markdown(f"[Read More]({url})")
+                # Display the article details
+                st.markdown(f"### {title}")
+                st.markdown(f"**Source:** {source} | **Description:** {description}")
+                st.markdown(f"[Read More]({url})")
 
-            else:
-                st.write(f"Sorry, no articles found for {input_country} in the '{option}' category.")
+        else:
+            st.write(f"Sorry, no articles found for {input_country} in the '{option}' category.")
 
-        except Exception as e:
-            st.write(f"An error occurred while fetching the news: {e}")
-    else:
-        st.write(f"Invalid country name: {input_country}. Please enter a valid country name.")
-
+    except Exception as e:
+        st.write(f"An error occurred while fetching the news: {e}")
+else:
+    st.write(f"Invalid country name: {input_country}. Please select a valid country.")
