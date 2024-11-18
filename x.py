@@ -4,6 +4,8 @@ import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
+from newsapi import NewsApiClient
+import pycountry
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
@@ -283,7 +285,7 @@ latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
 #defining tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "predictions"])
+tab1, tab2, tab3, tab4 ,tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "predictions","News"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -437,3 +439,56 @@ with tab4:
    else:
        st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
        st.write("**Asset price may go down**")
+with tab5:
+# you have to get your api key from newapi.com and then paste it below
+newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
+
+# now we will take name of country from user as input
+input_country = input("Country: ")
+input_countries = [f'{input_country.strip()}']
+countries = {}
+
+# iterate over all the countries in
+# the world using pycountry module
+for country in pycountry.countries:
+
+	# and store the unique code of each country
+	# in the dictionary along with it's full name
+	countries[country.name] = country.alpha_2
+
+# now we will check that the entered country name is
+# valid or invalid using the unique code
+codes = [countries.get(country.title(), 'Unknown code')
+		for country in input_countries]
+
+# now we have to display all the categories from which user will
+# decide and enter the name of that category
+option = input("Which category are you interested in?\n1.Business\n2.stocks\n3.cryptocurrencies\n4.ETFs\n5.Mutual funds\nEnter here: ")
+
+# now we will fetch the new according to the choice of the user
+top_headlines = newsapi.get_top_headlines(
+
+	# getting top headlines from all the news channels
+	category=f'{option.lower()}', language='en', country=f'{codes[0].lower()}')
+
+# fetch the top news under that category
+Headlines = top_headlines['articles']
+
+# now we will display the that news with a good readability for user
+if Headlines:
+		for articles in Headlines:
+			b = articles['title'][::-1].index("-")
+			if "news" in (articles['title'][-b+1:]).lower():
+				print(
+					f"{articles['title'][-b+1:]}: {articles['title'][:-b-2]}.")
+			else:
+				print(
+					f"{articles['title'][-b+1:]} News: {articles['title'][:-b-2]}.")
+	else:
+		print(
+			f"Sorry no articles found for {input_country}, Something Wrong!!!")
+	option = input("Do you want to search again[Yes/No]?")
+	if option.lower() == 'yes':
+		continue
+	else:
+		exit()
