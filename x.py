@@ -402,38 +402,33 @@ with tab3:
     if volume:
         st.subheader("Volume Chart")
         def compute_volumetric_data(df):
-    """
-    Calculate buying and selling pressure based on price movements.
-    - Buying pressure: Volume when Close > Open.
-    - Selling pressure: Volume when Close <= Open.
-    """
-    df['Buy_Volume'] = df['Volume'].where(df['Close'] > df['Open'], 0)  # Buy volume
-    df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Sell volume
-    return df
+            df['Buy_Volume'] = df['Volume'].where(df['Close'] > df['Open'], 0)  # Buy volume
+            df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Sell volume
+            return df
 
-def plot_volumetric_chart(df):
-    st.write("Volume chart tracks the number of shares/contracts traded.")
-    st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
-    st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
-    # Compute volumetric data
-    df = compute_volumetric_data(df)
+        def plot_volumetric_chart(df):
+            st.write("Volume chart tracks the number of shares/contracts traded.")
+            st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
+            st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
+            # Compute volumetric data
+            df = compute_volumetric_data(df)
 
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(15, 5))
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(15, 5))
 
-    # Plot buying pressure
-    ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
-    # Plot selling pressure
-    ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
+            # Plot buying pressure
+            ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
+            # Plot selling pressure
+            ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
 
-    # Add chart title and labels
-    ax.set_title('Volumetric Chart: Buying vs Selling Pressure', fontsize=15)
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Volume')
-    ax.legend(loc='upper left')
+            # Add chart title and labels
+            ax.set_title('Volumetric Chart: Buying vs Selling Pressure', fontsize=15)
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Volume')
+            ax.legend(loc='upper left')
 
-    # Display the plot in Streamlit
-    st.pyplot(fig)
+            # Display the plot in Streamlit
+            st.pyplot(fig)
 
 # Display recommendation with button and icon
 with tab4:
