@@ -89,7 +89,7 @@ def plot_bollinger_bands(df, window=20):
     st.pyplot(fig)
 
 def plot_volume_chart(df):
-    fig, ax = plt.subplots(figsize=(15, 5))
+    fig1, ax = plt.subplots(figsize=(15, 5))
     
     # Plot the volume as bars
     ax.bar(df.index, df['Volume'], color='purple', alpha=0.6, label='Volume')
@@ -412,7 +412,7 @@ with tab3:
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         st.subheader("Volume Chart")
-        st.pyplot(fig)
+        st.pyplot(fig1)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
