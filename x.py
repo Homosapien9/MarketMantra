@@ -410,8 +410,8 @@ with tab3:
         
         def plot_volumetric_chart(df):
             st.write("Volume chart tracks the number of shares/contracts traded.")
-            st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
-            st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
+            st.write("High volume: Confirms price trends (up or down).")
+            st.write("Low volume: Signals lack of interest or indecision.")
             # Compute volumetric data
             df = compute_volumetric_data(df)
 
