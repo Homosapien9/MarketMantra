@@ -7,3 +7,5 @@ streamlit
 matplotlib
 scikit-learn
 plotly
+newsapi-python
+pycountry
