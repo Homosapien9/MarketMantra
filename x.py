@@ -434,7 +434,7 @@ with tab4:
        st.write("**Asset price may go down**")
 # News Tab
 with tab5:
-  input_country = st.selectbox("Select the country:", [country.name for country in pycountry.countries])
+    input_country = st.selectbox("Select the country:", [country.name for country in pycountry.countries])
 
     # Get the country code
     country_code = pycountry.countries.get(name=input_country).alpha_2
