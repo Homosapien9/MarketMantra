@@ -213,8 +213,6 @@ target = df['Target'].values
 # Scaling features
 scaler = StandardScaler()
 features_scaled = scaler.fit_transform(features)
-
-# Split data
 # Split data
 X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)
 
@@ -223,8 +221,7 @@ models = {
     "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=15, random_state=45),
     "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=10, max_depth=15, random_state=45),
     "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=15, learning_rate=10, random_state=45),
-    "Decision Tree": DecisionTreeClassifier(random_state=45)
-}
+    "Decision Tree": DecisionTreeClassifier(random_state=45)}
 
 # Initialize a list to store predictions
 model_predictions = []
@@ -234,7 +231,6 @@ for model_name, model in models.items():
     model.fit(X_train, Y_train)  # Train the model
     model_pred = model.predict(X_valid)  # Get predictions
     model_predictions.append(model_pred)  # Store predictions
-
 
 # Convert list of predictions into a numpy array (shape: [n_models, n_samples])
 model_predictions = np.array(model_predictions)
@@ -262,7 +258,6 @@ ax.set(xticks=np.arange(len(classes)),
 for i in range(cm.shape[0]):
     for j in range(cm.shape[1]):
         ax.text(j, i, format(cm[i, j], 'd'), ha="center", va="center", color="black")
-
 st.pyplot(fig)
 
 # display individual model accuracy
@@ -438,7 +433,6 @@ with tab4:
    else:
        st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
        st.write("**Asset price may go down**")
-
 # News Tab
 with tab5:
     st.subheader("Latest News")
