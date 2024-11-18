@@ -88,18 +88,16 @@ def plot_bollinger_bands(df, window=20):
     ax.legend(loc='upper left')
     st.pyplot(fig)
 
-def plot_volume_chart(df):
-    fig1, ax = plt.subplots(figsize=(15, 5))
-    
-    # Plot the volume as bars
-    ax.bar(df.index, df['Volume'], color='purple', alpha=0.6, label='Volume')
-    
-    # Add labels and title
-    ax.set_title('Volume Chart', fontsize=15)
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Volume')
-    ax.legend(loc='upper left')
-    
+def compute_volumetric_data(df):
+    """
+    Compute volumetric data by categorizing volume into buying and selling pressure.
+    Buying pressure occurs when the close price is higher than the open price, 
+    and selling pressure occurs when the close price is lower.
+    """
+    df['Buy_Volume'] = df['Volume'].where(df['Close'] > df['Open'], 0)  # Volume on upward price movement
+    df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Volume on downward price movement
+    return df
+        
 qr_image = Image.open("MarketMantra_website.png")  # Replace with your QR code file
 
 col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
@@ -359,7 +357,6 @@ with tab3:
     if macd:
         st.header("MACD (Moving Average Convergence Divergence)")
         st.write("It helps us understand if the stock price is likely to go up or down.")
-        st.write("**Key Points **")
         st.write("If the **MACD line** is **higher** than the **signal line**, it means the stock price could go **up**.")
         st.write("If the **MACD line** is **lower** than the **signal line**, it means the stock price could go **down**.")
         macd_line, signal_line = compute_macd(df)
@@ -375,7 +372,6 @@ with tab3:
     if stochastic:
         st.header("stochastic oscillator")
         st.write("It helps to see if a stock is high or low compared to its recent prices.")
-        st.write("**Key Points **")
         st.write("If the value is above _**80**_, it might mean the stock is _**high (and could come down)**_.")
         st.write("If the value is below _**20**_, it might mean the stock is _**low (and could go up)**_.")
         stochastic_oscillator = compute_stochastic(df)
@@ -392,7 +388,6 @@ with tab3:
     if Bollingers:
         st.subheader("Bollinger Bands")
         st.write("Bollinger Bands show the volatility and price range of a stock.")
-        st.write("**Key Points**")
         st.write("If the price hits or exceeds the **upper band**, signaling a potential **sell**.")
         st.write("If the price hits or drops below the **lower band**, signaling a potential **buy**.")
         plot_bollinger_bands(df)
@@ -400,19 +395,32 @@ with tab3:
     if RSI:
         st.subheader("Relative Strength Index (RSI)")
         st.write("RSI shows if a stock is overbought or oversold.")
-        st.write("**Key Points **")
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         plot_rsi(df)
 
     if volume:
         st.subheader("Volume Chart")
-        st.write("RSI shows if a stock is overbought or oversold.")
-        st.write("**Key Points **")
+        def plot_volumetric_chart(df):
+    """Plot Volumetric Chart."""
+    df = compute_volumetric_data(df)
+    
+    fig, ax = plt.subplots(figsize=(15, 5))
+    
+    # Plot buying pressure as green bars
+    ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
+    # Plot selling pressure as red bars
+    ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
+    
+    # Add labels and title
+    ax.set_title('Volumetric Chart (Buying vs Selling Pressure)', fontsize=15)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Volume')
+    ax.legend(loc='upper left')
+        st.write("Volume chart tracks the number of shares/contracts traded.")
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
-        st.subheader("Volume Chart")
-        st.pyplot(fig1)
+        st.pyplot(fig)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
