@@ -5,10 +5,10 @@ import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
+from newspaper import Article
 from datetime import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-from pygooglenews import GoogleNews
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -434,51 +434,39 @@ with tab4:
        st.write("**Asset price may go down**")
 # News Tab
 with tab5:
-  st.subheader("Business News")
+  input_country = st.selectbox("Select the country:", [country.name for country in pycountry.countries])
 
-gn = GoogleNews()
+    # Get the country code
+    country_code = pycountry.countries.get(name=input_country).alpha_2
 
-# Display a text input to the user for entering a country name
-input_country = st.text_input("Enter the name of the country:", "India")
+    # Input for category selection
+    category = st.selectbox("Which category are you interested in?", ["Business", "Stocks", "Cryptocurrencies", "ETFs", "Mutual Funds"])
 
-# Map country names to country codes using pycountry
-countries = {country.name: country.alpha_2 for country in pycountry.countries}
+    # Sample URLs (you can add more sources as needed)
+    news_urls = {
+        "Business": ["https://www.cnbc.com/business/", "https://www.reuters.com/finance"],
+        "Stocks": ["https://www.marketwatch.com/stocks/", "https://www.nasdaq.com/"],
+        "Cryptocurrencies": ["https://www.coindesk.com/", "https://www.cointelegraph.com/"],
+        "ETFs": ["https://www.etf.com/", "https://www.etftrends.com/"],
+        "Mutual Funds": ["https://www.morningstar.com/funds", "https://www.fundsupermart.com/"],
+    }
 
-# Check if the entered country is valid
-country_code = countries.get(input_country.strip().title(), None)
+    # Fetch the URLs based on the selected category
+    selected_urls = news_urls.get(category, [])
 
-if country_code:
-    # If the country is valid, fetch the top news in the 'Business' category
-    st.subheader(f"Top Business News in {input_country}")
-
-   category_option = st.selectbox(
-    "Which category are you interested in?",
-    ["Business", "Cryptocurrencies", "Mutual Funds", "ETFs"])
-    try:
-        top_news = gn.top_news(language='en', region=country_code)
-        
-        # Get the articles
-        articles = top_news['entries']
-        
-        if articles:
-            # Display the articles in a structured format
-            for article in articles:
-                title = article['title']
-                link = article['link']
-                source = article['source']['title']
-                published = article['published']
-                summary = article['summary']
-
-                # Display article details
-                st.markdown(f"### {title}")
-                st.markdown(f"**Source:** {source} | **Published:** {published}")
-                st.markdown(f"**Summary:** {summary}")
-                st.markdown(f"[Read more]({link})")
-
-        else:
-            st.write(f"Sorry, no articles found for {input_country} in the 'Business' category.")
-
-    except Exception as e:
-        st.write(f"An error occurred while fetching the news: {e}")
-else:
-    st.write(f"Invalid country name: {input_country}. Please enter a valid country name.")
+    if selected_urls:
+        for url in selected_urls:
+            try:
+                article = Article(url)
+                article.download()
+                article.parse()
+                
+                # Extracting the article's title and content
+                st.markdown(f"### {article.title}")
+                st.markdown(f"**Published at:** {article.publish_date}")
+                st.write(article.text)
+                st.markdown(f"[Read full article]({url})")
+            except Exception as e:
+                st.write(f"Failed to fetch articles from {url}. Error: {str(e)}")
+    else:
+        st.write("No articles found for this category.")
