@@ -429,7 +429,7 @@ with tab3:
 
             # Display the plot in Streamlit
             st.pyplot(fig)
-
+            plot_volumetric_chart(df)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
