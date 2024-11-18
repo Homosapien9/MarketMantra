@@ -1,1 +1,1 @@
-WElcome to market mantra this is an asset predictor  
+Welcome to MarketMantra this is an asset predictor  
