@@ -418,7 +418,7 @@ with tab3:
             st.write("Volume chart tracks the number of shares/contracts traded.")
             st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
             st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
-            st.pyplot(fig)
+            plot_volumetric_chart(df)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
