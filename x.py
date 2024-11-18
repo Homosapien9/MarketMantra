@@ -154,9 +154,9 @@ else:
     RSI = False
 
 if "Volume Chart" in selected_indicators:
-    volume = true
+    volume = True
 else:
-    volume = false
+    volume = False
 
 # Data Visualization: Closing Price
 with st.expander("Data Visualization"):
@@ -359,7 +359,7 @@ with tab3:
     if macd:
         st.header("MACD (Moving Average Convergence Divergence)")
         st.write("It helps us understand if the stock price is likely to go up or down.")
-        st.write("**Its margings are:**")
+        st.write("**Key Points **")
         st.write("If the **MACD line** is **higher** than the **signal line**, it means the stock price could go **up**.")
         st.write("If the **MACD line** is **lower** than the **signal line**, it means the stock price could go **down**.")
         macd_line, signal_line = compute_macd(df)
@@ -375,7 +375,7 @@ with tab3:
     if stochastic:
         st.header("stochastic oscillator")
         st.write("It helps to see if a stock is high or low compared to its recent prices.")
-        st.write("**Its margings are:**")
+        st.write("**Key Points **")
         st.write("If the value is above _**80**_, it might mean the stock is _**high (and could come down)**_.")
         st.write("If the value is below _**20**_, it might mean the stock is _**low (and could go up)**_.")
         stochastic_oscillator = compute_stochastic(df)
@@ -392,7 +392,7 @@ with tab3:
     if Bollingers:
         st.subheader("Bollinger Bands")
         st.write("Bollinger Bands show the volatility and price range of a stock.")
-        st.write("**Margins:**")
+        st.write("**Key Points**")
         st.write("If the price hits or exceeds the **upper band**, signaling a potential **sell**.")
         st.write("If the price hits or drops below the **lower band**, signaling a potential **buy**.")
         plot_bollinger_bands(df)
@@ -400,12 +400,17 @@ with tab3:
     if RSI:
         st.subheader("Relative Strength Index (RSI)")
         st.write("RSI shows if a stock is overbought or oversold.")
-        st.write("**Margins:**")
+        st.write("**Key Points **")
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         plot_rsi(df)
 
     if volume:
+        st.subheader("Volume Chart")
+        st.write("RSI shows if a stock is overbought or oversold.")
+        st.write("**Key Points **")
+        st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
+        st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         st.subheader("Volume Chart")
         st.pyplot(fig)
 # Display recommendation with button and icon
