@@ -284,8 +284,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-#defining tabs
-tab1, tab2, tab3, tab4 , tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "predictions", "News"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "News"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
