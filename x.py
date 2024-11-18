@@ -402,25 +402,23 @@ with tab3:
     if volume:
         st.subheader("Volume Chart")
         def plot_volumetric_chart(df):
-    """Plot Volumetric Chart."""
-    df = compute_volumetric_data(df)
+            df = compute_volumetric_data(df)
+            fig, ax = plt.subplots(figsize=(15, 5))
     
-    fig, ax = plt.subplots(figsize=(15, 5))
+            # Plot buying pressure as green bars
+            ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
+            # Plot selling pressure as red bars
+            ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
     
-    # Plot buying pressure as green bars
-    ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
-    # Plot selling pressure as red bars
-    ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
-    
-    # Add labels and title
-    ax.set_title('Volumetric Chart (Buying vs Selling Pressure)', fontsize=15)
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Volume')
-    ax.legend(loc='upper left')
-        st.write("Volume chart tracks the number of shares/contracts traded.")
-        st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
-        st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
-        st.pyplot(fig)
+            # Add labels and title
+            ax.set_title('Volumetric Chart (Buying vs Selling Pressure)', fontsize=15)
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Volume')
+            ax.legend(loc='upper left')
+            st.write("Volume chart tracks the number of shares/contracts traded.")
+            st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
+            st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
+            st.pyplot(fig)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
