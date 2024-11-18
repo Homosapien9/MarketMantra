@@ -7,5 +7,5 @@ streamlit
 matplotlib
 scikit-learn
 plotly
-pygooglenews
+PyNews
 pycountry
