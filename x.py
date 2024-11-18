@@ -88,7 +88,18 @@ def plot_bollinger_bands(df, window=20):
     ax.legend(loc='upper left')
     st.pyplot(fig)
 
-
+def plot_volume_chart(df):
+    fig, ax = plt.subplots(figsize=(15, 5))
+    
+    # Plot the volume as bars
+    ax.bar(df.index, df['Volume'], color='purple', alpha=0.6, label='Volume')
+    
+    # Add labels and title
+    ax.set_title('Volume Chart', fontsize=15)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Volume')
+    ax.legend(loc='upper left')
+    
 qr_image = Image.open("MarketMantra_website.png")  # Replace with your QR code file
 
 col1, col2 = st.columns([4, 1])  # Adjust column proportions as needed
@@ -109,7 +120,7 @@ with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     end_date = st.date_input("End Date", datetime.now().date())
 with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
-    indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index",]
+    indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index","Volume Chart"]
     selected_indicators = st.multiselect("Select Technical Indicators to Display",indicator_options,default=["50-Day Simple Moving Average (SMA)", "200-Day Simple Moving Average (SMA)",]  )
 
 if "50-Day Simple Moving Average (SMA)" in selected_indicators:
@@ -141,6 +152,11 @@ if "(RSI)Relative Strength Index" in selected_indicators:
     RSI = True
 else:
     RSI = False
+
+if "Volume Chart" in selected_indicators:
+    volume = true
+else:
+    volume = false
 
 # Data Visualization: Closing Price
 with st.expander("Data Visualization"):
@@ -388,6 +404,10 @@ with tab3:
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         plot_rsi(df)
+
+    if volume:
+        st.subheader("Volume Chart")
+        st.pyplot(fig)
 # Display recommendation with button and icon
 with tab4:
    st.subheader("Predictions for Tomorrow's Trading")
