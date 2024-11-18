@@ -100,7 +100,7 @@ def compute_volumetric_data(df):
     df['Sell_Volume'] = df['Volume'].where(df['Close'] <= df['Open'], 0)  # Volume on downward price movement
     return df
         
-qr_image = Image.open("app QR.png")
+qr_image = Image.open("website QR.png")
 col1, col2 = st.columns([4, 1])
 
 # Title in Column 1
