@@ -439,56 +439,47 @@ with tab4:
    else:
        st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
        st.write("**Asset price may go down**")
+
 with tab5:
-# you have to get your api key from newapi.com and then paste it below
-newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
+	# Initialize News API client
+        newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
+        # Streamlit input for country
+        input_country = st.text_input("Enter the name of the country:", "United States")
+        # Map country names to country codes using pycountry
+        countries = {country.name: country.alpha_2 for country in pycountry.countries}
+        # Check if the input country is valid
+        country_code = countries.get(input_country.strip().title(), None)
+        if country_code:
+        # Now we will get the category input from the user
+                option = st.selectbox("Which category are you interested in?", ["Business", "Stocks", "Cryptocurrencies", "ETFs", "Mutual funds"])
+        # Fetch the top headlines based on user input
+        try:
+            top_headlines = newsapi.get_top_headlines(
+            category=option.lower(),
+            language='en',
+            country=country_code.lower()
+            )
 
-# now we will take name of country from user as input
-input_country = input("Country: ")
-input_countries = [f'{input_country.strip()}']
-countries = {}
+        # Extract the headlines from the response
+        articles = top_headlines['articles']
+        
+        if articles:
+            # Display articles in a structured format
+            for article in articles:
+                title = article['title']
+                source = article['source']['name']
+                url = article['url']
+                description = article['description']
 
-# iterate over all the countries in
-# the world using pycountry module
-for country in pycountry.countries:
+                # Display the article details
+                st.markdown(f"### {title}")
+                st.markdown(f"**Source:** {source} | **Description:** {description}")
+                st.markdown(f"[Read More]({url})")
 
-	# and store the unique code of each country
-	# in the dictionary along with it's full name
-	countries[country.name] = country.alpha_2
+        else:
+            st.write(f"Sorry, no articles found for {input_country} in the '{option}' category.")
 
-# now we will check that the entered country name is
-# valid or invalid using the unique code
-codes = [countries.get(country.title(), 'Unknown code')
-		for country in input_countries]
-
-# now we have to display all the categories from which user will
-# decide and enter the name of that category
-option = input("Which category are you interested in?\n1.Business\n2.stocks\n3.cryptocurrencies\n4.ETFs\n5.Mutual funds\nEnter here: ")
-
-# now we will fetch the new according to the choice of the user
-top_headlines = newsapi.get_top_headlines(
-
-	# getting top headlines from all the news channels
-	category=f'{option.lower()}', language='en', country=f'{codes[0].lower()}')
-
-# fetch the top news under that category
-Headlines = top_headlines['articles']
-
-# now we will display the that news with a good readability for user
-if Headlines:
-		for articles in Headlines:
-			b = articles['title'][::-1].index("-")
-			if "news" in (articles['title'][-b+1:]).lower():
-				print(
-					f"{articles['title'][-b+1:]}: {articles['title'][:-b-2]}.")
-			else:
-				print(
-					f"{articles['title'][-b+1:]} News: {articles['title'][:-b-2]}.")
-	else:
-		print(
-			f"Sorry no articles found for {input_country}, Something Wrong!!!")
-	option = input("Do you want to search again[Yes/No]?")
-	if option.lower() == 'yes':
-		continue
-	else:
-		exit()
+        except Exception as e:
+                st.write(f"An error occurred while fetching the news: {e}")
+        else:
+           st.write(f"Invalid country name: {input_country}. Please enter a valid country name.")
