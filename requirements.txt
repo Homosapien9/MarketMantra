@@ -9,3 +9,4 @@ scikit-learn
 plotly
 newspaper3k
 pycountry
+lxml_html_clean
