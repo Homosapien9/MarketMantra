@@ -1,20 +1,19 @@
+import pycountry
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
-from newsapi import NewsApiClient
-import pycountry
+from datetime import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, confusion_matrix
+from pygooglenews import GoogleNews
 from sklearn.tree import DecisionTreeClassifier
-from datetime import datetime
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 # Define a helper function for stock data
 def get_stock_data(stock_symbol, start_date, end_date):
     try:
@@ -437,51 +436,49 @@ with tab4:
 with tab5:
   st.subheader("Business News")
 
-# Initialize News API client
-newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
+gn = GoogleNews()
 
-# Streamlit selectbox for selecting the country
+# Display a text input to the user for entering a country name
+input_country = st.text_input("Enter the name of the country:", "India")
+
+# Map country names to country codes using pycountry
 countries = {country.name: country.alpha_2 for country in pycountry.countries}
-country_names = list(countries.keys())
 
-# Streamlit selectbox for country selection
-input_country = st.selectbox("Select the country:", country_names, index=country_names.index("India"))
-
-# Get country code from selected country name
-country_code = countries.get(input_country.strip(), None)
+# Check if the entered country is valid
+country_code = countries.get(input_country.strip().title(), None)
 
 if country_code:
-    # Set the category for the News API (fixed as "Business")
-    option = "Business"
+    # If the country is valid, fetch the top news in the 'Business' category
+    st.subheader(f"Top Business News in {input_country}")
 
-    # Fetch the top headlines based on user input (Business news)
+   category_option = st.selectbox(
+    "Which category are you interested in?",
+    ["Business", "Cryptocurrencies", "Mutual Funds", "ETFs"])
     try:
-        top_headlines = newsapi.get_top_headlines(
-            category=option.lower(),
-            language='en',
-            country=country_code.lower()
-        )
-
-        # Extract the headlines from the response
-        articles = top_headlines['articles']
-
+        top_news = gn.top_news(language='en', region=country_code)
+        
+        # Get the articles
+        articles = top_news['entries']
+        
         if articles:
-            # Display articles in a structured format
+            # Display the articles in a structured format
             for article in articles:
                 title = article['title']
-                source = article['source']['name']
-                url = article['url']
-                description = article['description']
+                link = article['link']
+                source = article['source']['title']
+                published = article['published']
+                summary = article['summary']
 
-                # Display the article details
+                # Display article details
                 st.markdown(f"### {title}")
-                st.markdown(f"**Source:** {source} | **Description:** {description}")
-                st.markdown(f"[Read More]({url})")
+                st.markdown(f"**Source:** {source} | **Published:** {published}")
+                st.markdown(f"**Summary:** {summary}")
+                st.markdown(f"[Read more]({link})")
 
         else:
-            st.write(f"Sorry, no articles found for {input_country} in the '{option}' category.")
+            st.write(f"Sorry, no articles found for {input_country} in the 'Business' category.")
 
     except Exception as e:
         st.write(f"An error occurred while fetching the news: {e}")
 else:
-    st.write(f"Invalid country name: {input_country}. Please select a valid country.")
+    st.write(f"Invalid country name: {input_country}. Please enter a valid country name.")
