@@ -279,7 +279,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "News"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "Business News"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -435,13 +435,13 @@ with tab4:
        st.write("**Asset price may go down**")
 # News Tab
 with tab5:
-    st.subheader("Latest News")
+    st.subheader("Business News")
 
     # Initialize News API client
     newsapi = NewsApiClient(api_key='b6baaee7fa8c4c90b0e8e9e36b55e682')
 
     # Streamlit input for country
-    input_country = st.text_input("Enter the name of the country:", "United States")
+    input_country = st.text_input("Enter the name of the country:", "India")
 
     # Map country names to country codes using pycountry
     countries = {country.name: country.alpha_2 for country in pycountry.countries}
@@ -451,8 +451,7 @@ with tab5:
 
     if country_code:
         # Now we will get the category input from the user
-        option = st.selectbox("Which category are you interested in?", 
-                              ["Business", "Stocks", "Cryptocurrencies", "ETFs", "Mutual funds"])
+        option = "Business"
 
         # Fetch the top headlines based on user input
         try:
