@@ -481,9 +481,9 @@ with tab5:
 	
 	# Function to predict stock price for a future date
 	def predict_price(future_date):
-	# Convert the future date to ordinal
-	future_date_ordinal = future_date.toordinal()
-	future_date_poly = poly.transform([[future_date_ordinal]])
+	   # Convert the future date to ordinal
+	   future_date_ordinal = future_date.toordinal()
+	   future_date_poly = poly.transform([[future_date_ordinal]])
 	
 	# Predict the price using the trained model
 	predicted_price = model.predict(future_date_poly)
