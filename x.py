@@ -420,10 +420,27 @@ with tab3:
         plot_volumetric_chart(df)
 # Display recommendation with button and icon
 with tab4:
-   st.subheader("Predictions for Tomorrow's Trading")
-   if predicted_trend == 1:
-       st.write(":green[**Recommendation:** Hold/Buy the asset for tomorrow.]")
-       st.write("**Asset price may go up**")
-   else:
-       st.write(":red[**Recommendation:** Sell the asset for tomorrow.]")
-       st.write("**Asset price may go down**")
+    st.subheader("Predictions for Tomorrow's Trading")
+
+    # Prediction logic: Calculate probability of upward trend
+    predicted_probabilities = models[selected_model].predict_proba(latest_data_scaled)
+    predicted_probability_up = predicted_probabilities[0][1]  # Probability for "up"
+    predicted_probability_down = predicted_probabilities[0][0]  # Probability for "down"
+
+    # Decision thresholds for "safer" predictions
+    threshold_up = 0.55  # Minimum probability to predict "up"
+    threshold_down = 0.45  # Maximum probability to predict "down"
+
+    if predicted_probability_up >= threshold_up:
+        st.write(":green[**Prediction:** The asset is likely to increase in value tomorrow.]")
+        st.metric(label="Probability (Up)", value=f"{predicted_probability_up*100:.2f}%")
+        st.write("**Recommendation:** Consider buying or holding the asset.")
+    elif predicted_probability_down <= threshold_down:
+        st.write(":red[**Prediction:** The asset is likely to decrease in value tomorrow.]")
+        st.metric(label="Probability (Down)", value=f"{predicted_probability_down*100:.2f}%")
+        st.write("**Recommendation:** Consider selling the asset.")
+    else:
+        st.write(":orange[**Prediction:** The asset movement is uncertain.]")
+        st.write("**Recommendation:** Exercise caution and avoid making significant trades.")
+        
+    st.caption("Predictions are based on historical data and machine learning models.")
