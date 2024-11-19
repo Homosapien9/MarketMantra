@@ -416,7 +416,6 @@ with tab3:
             # Display the plot in Streamlit
             st.pyplot(fig)
         plot_volumetric_chart(df)
-# Display recommendation with button and icon
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
 
@@ -455,8 +454,8 @@ with tab4:
         sma_short = df['Close'].rolling(window=short_term_window).mean()
         sma_long = df['Close'].rolling(window=long_term_window).mean()
 
-        # Determine the trend
-        if sma_short.iloc[-1] > sma_long.iloc[-1]:
+        # Compare the last values (scalar) of the moving averages
+        if sma_short.iloc[-1] > sma_long.iloc[-1]:  # Compare the last value, not the whole Series
             st.write(":green[**Bullish**]")
             st.write("The stock is currently in a bullish trend (short-term price is above the long-term price).")
         else:
