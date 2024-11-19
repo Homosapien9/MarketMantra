@@ -460,7 +460,7 @@ with tab5:
 	       ticker = st.text_input("Enter Stock Ticker", value="AAPL")
 	
 	    # Download historical stock data
-	    data = yf.download(ticker, start="2010-01-01", end="2024-01-01")
+	    yf.download(stock_symbol, start=to_datetime("2024-01-01"), end=datetime.now().date())
 	    
 	    # Use only the 'Close' price for prediction
 	    data = data[['Close']]
