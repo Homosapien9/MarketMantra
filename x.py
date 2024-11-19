@@ -421,6 +421,7 @@ with tab3:
             # Display the plot in Streamlit
             st.pyplot(fig)
         plot_volumetric_chart(df)
+        
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
 
@@ -458,17 +459,12 @@ with tab4:
 
 with tab5:
     import streamlit as st
-import yfinance as yf
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-from datetime import datetime, timedelta
+    import yfinance as yf
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+    from sklearn.preprocessing import PolynomialFeatures
+    from datetime import datetime, timedelta
 
-# Streamlit tab setup
-with st.expander('Stock Price Prediction'):
-    stock_symbol = st.text_input("Enter Stock Ticker", value="AAPL")
-
-    # Download historical stock data from Yahoo Finance
     data = yf.download(stock_symbol, start="2010-01-01", end=datetime.now().date())
 
     # Check if data is fetched
