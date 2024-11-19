@@ -12,6 +12,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+#experiment
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from datetime import timedelta
+
 # Define a helper function for stock data
 def get_stock_data(stock_symbol, start_date, end_date):
     try:
@@ -271,7 +276,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4 = st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions",])
+tab1, tab2, tab3, tab4 ,tab5= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "exp"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -447,3 +452,39 @@ with tab4:
         else:
             st.write(":red[The stock is likely to fall tomorrow.]")
             st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
+
+with tab5:
+    data = yf.download(ticker, start="2010-01-01", end="2024-01-01")
+    # Use only the 'Close' price for prediction
+    data = data[['Close']]
+    # Convert the dates into numeric values for polynomial regression
+    data['Date'] = data.index
+    data['Date'] = data['Date'].map(datetime.toordinal)  # Convert date to ordinal format (number of days since 1/1/0001)
+
+    # Prepare the features and target variables for regression
+    X = data['Date'].values.reshape(-1, 1)  # Feature: date as number
+    y = data['Close'].values  # Target: closing price
+
+    # Apply Polynomial Regression (degree 3 is a good choice for stock price prediction)
+    poly = PolynomialFeatures(degree=3)
+    X_poly = poly.fit_transform(X)
+
+    # Create and train the model
+    model = LinearRegression()
+    model.fit(X_poly, y)
+
+    # Function to predict stock price for a future date
+    def predict_price(future_date):
+    # Convert the future date to ordinal
+    future_date_ordinal = future_date.toordinal()
+    future_date_poly = poly.transform([[future_date_ordinal]])
+    
+    # Predict the price using the trained model
+    predicted_price = model.predict(future_date_poly)
+    return predicted_price[0]
+
+    # Example: Predict stock price for 5 years from now
+    future_date = datetime.now() + timedelta(st.date_input(pd.to_datetime("2030-01-01")))  # 5 years ahead
+    predicted_price = predict_price(future_date)
+
+    print(f"Predicted stock price for {ticker} on {future_date.strftime('%Y-%m-%d')}: ${predicted_price:.2f}")
