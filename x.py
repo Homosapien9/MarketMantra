@@ -12,10 +12,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-#experiment
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from datetime import timedelta
 
 # Define a helper function for stock data
 def get_stock_data(stock_symbol, start_date, end_date):
@@ -276,7 +272,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4 ,tab5= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "exp"])
+tab1, tab2, tab3, tab4= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -456,60 +452,3 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-
-with tab5:
-    import streamlit as st
-    import yfinance as yf
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-    from sklearn.preprocessing import PolynomialFeatures
-    from datetime import datetime, timedelta
-
-    data = yf.download(stock_symbol, start="2024-01-01", end=datetime.now().date())
-
-    # Check if data is fetched
-    if data.empty:
-        st.error(f"No data found for {stock_symbol}. Please check the ticker symbol.")
-    else:
-        # Use only the 'Close' price for prediction
-        data = data[['Close']]
-
-        # Convert the dates into numeric values for polynomial regression
-        data['Date'] = data.index
-        data['Date'] = data['Date'].map(datetime.toordinal)  # Convert date to ordinal format (number of days since 1/1/0001)
-
-        # Prepare the features and target variables for regression
-        X = data['Date'].values.reshape(-1, 1)  # Feature: date as number
-        y = data['Close'].values  # Target: closing price
-
-        # Apply Polynomial Regression (degree 3 is a good choice for stock price prediction)
-        poly = PolynomialFeatures(degree=3)
-        X_poly = poly.fit_transform(X)
-
-        # Create and train the model
-        model = LinearRegression()
-        model.fit(X_poly, y)
-
-        # Function to predict stock price for a future date
-        def predict_price(future_date):
-            # Convert the future date to ordinal
-            future_date_ordinal = future_date.toordinal()
-            future_date_poly = poly.transform([[future_date_ordinal]])
-
-            # Predict the price using the trained model
-            predicted_price = model.predict(future_date_poly)
-
-            # Extract the scalar value from the numpy array
-            return predicted_price[0] if predicted_price.ndim == 1 else predicted_price[0][0]
-
-        # Example: User selects the future date via the Streamlit input
-        future_date_input = st.date_input("Select Future Date", value=datetime.now() + timedelta(days=365*5))  # Default: 5 years ahead
-        
-        # Convert the date input to datetime object
-        future_date = pd.to_datetime(future_date_input)
-
-        # Predict the price for the selected future date
-        predicted_price = predict_price(future_date)
-
-        # Display the predicted price
-        st.write(f"Predicted stock price for {stock_symbol} on {future_date.strftime('%Y-%m-%d')}: _**{predicted_price:.2f}**_")
