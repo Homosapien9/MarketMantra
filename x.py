@@ -433,32 +433,13 @@ with tab4:
     avg_prob_up = avg_probabilities[1]  # Average probability for "up"
     avg_prob_down = avg_probabilities[0]  # Average probability for "down"
 
-    # Display predictions for the selected model
-    selected_model_probabilities = models[selected_model].predict_proba(latest_data_scaled)
-    selected_model_prob_up = selected_model_probabilities[0][1]  # Probability for "up"
-    selected_model_prob_down = selected_model_probabilities[0][0]  # Probability for "down"
-
-    st.write(f"### Selected Model: {selected_model}")
-    if selected_model_prob_up >= 0.55:
-        st.write(":green[**Prediction (Selected Model): The asset is likely to increase in value tomorrow.]")
-        st.metric(label="Probability (Up)", value=f"{selected_model_prob_up*100:.2f}%")
-    elif selected_model_prob_down <= 0.45:
-        st.write(":red[**Prediction (Selected Model): The asset is likely to decrease in value tomorrow.]")
-        st.metric(label="Probability (Down)", value=f"{selected_model_prob_down*100:.2f}%")
-    else:
-        st.write(":orange[**Prediction (Selected Model): The asset movement is uncertain.]")
-
-    st.divider()  # Separate individual prediction and average
-
     # Display average predictions
     st.write("### Average Prediction Across All Models")
-    if avg_prob_up >= 0.55:
+    if avg_prob_up > avg_prob_down:
         st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.]")
         st.metric(label="Average Probability (Up)", value=f"{avg_prob_up*100:.2f}%")
-    elif avg_prob_down <= 0.45:
+    else:
         st.write(":red[**Prediction (Average): The asset is likely to decrease in value tomorrow.]")
         st.metric(label="Average Probability (Down)", value=f"{avg_prob_down*100:.2f}%")
-    else:
-        st.write(":orange[**Prediction (Average): The asset movement is uncertain.]")
 
-    st.caption("Predictions are based on the average outputs of all models and selected model probabilities.")
+    st.caption("Predictions are based on the average outputs of all models.")
