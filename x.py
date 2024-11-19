@@ -436,10 +436,22 @@ with tab4:
     # Display average predictions
     st.write("### Average Prediction Across All Models")
     if avg_prob_up > avg_prob_down:
-        st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.]")
+        st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.**]")
         st.metric(label="Average Probability (Up)", value=f"{avg_prob_up*100:.2f}%")
     else:
-        st.write(":red[**Prediction (Average): The asset is likely to decrease in value tomorrow.]")
+        st.write(":red[**Prediction (Average): The asset is likely to decrease in value tomorrow.**]")
         st.metric(label="Average Probability (Down)", value=f"{avg_prob_down*100:.2f}%")
 
-    st.caption("Predictions are based on the average outputs of all models.")
+# Analyze the trend (Simple Moving Averages as example)
+    short_term_window = 20  # 20-day SMA for short-term trend
+    long_term_window = 50   # 50-day SMA for long-term trend
+    sma_short = data['Close'].rolling(window=short_term_window).mean()
+    sma_long = data['Close'].rolling(window=long_term_window).mean()
+
+    # Determine the trend
+    if sma_short.iloc[-1] > sma_long.iloc[-1]:
+        st.write(":green[**Bullish**]")
+        st.write("The stock is currently in a bullish trend (short-term price is above the long-term price).")
+    else:
+        st.write(":red[**Bearish**]")
+        st.write("The stock is currently in a bearish trend (short-term price is below the long-term price).")
