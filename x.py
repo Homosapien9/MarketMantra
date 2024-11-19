@@ -456,7 +456,8 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
-import streamlit as st
+with tab5:
+    import streamlit as st
 import yfinance as yf
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -501,7 +502,9 @@ with st.expander('Stock Price Prediction'):
 
             # Predict the price using the trained model
             predicted_price = model.predict(future_date_poly)
-            return predicted_price[0]
+
+            # Extract the scalar value from the numpy array
+            return predicted_price[0] if predicted_price.ndim == 1 else predicted_price[0][0]
 
         # Example: User selects the future date via the Streamlit input
         future_date_input = st.date_input("Select Future Date", value=datetime.now() + timedelta(days=365*5))  # Default: 5 years ahead
