@@ -487,7 +487,8 @@ with tab5:
 	
 	# Predict the price using the trained model
 	predicted_price = model.predict(future_date_poly)
-	return predicted_price[0]
+        return predicted_price[0]
+
 	# Example: User selects the future date via the Streamlit input
 	future_date_input = st.date_input("Select Future Date", value=datetime.now() + timedelta(days=365*5))  # Default: 5 years ahead
 	
