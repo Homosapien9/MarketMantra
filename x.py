@@ -457,9 +457,8 @@ with tab4:
         st.error(f"An error occurred: {str(e)}")
 
 with tab5:
-	
-	# Download historical stock data
-	yf.download(stock_symbol, start=to_datetime("2024-01-01"), end=datetime.now().date())
+        # Download historical stock data
+        yf.download(stock_symbol, start=to_datetime("2024-01-01"), end=datetime.now().date())
 	    
 	# Use only the 'Close' price for prediction
 	data = data[['Close']]
@@ -487,7 +486,7 @@ with tab5:
 	
 	# Predict the price using the trained model
 	predicted_price = model.predict(future_date_poly)
-        return predicted_price[0]
+return predicted_price[0]
 
 	# Example: User selects the future date via the Streamlit input
 	future_date_input = st.date_input("Select Future Date", value=datetime.now() + timedelta(days=365*5))  # Default: 5 years ahead
