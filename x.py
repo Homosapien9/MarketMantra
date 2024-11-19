@@ -456,38 +456,49 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
-with tab5:
-    data = yf.download(ticker, start="2010-01-01", end="2024-01-01")
-    # Use only the 'Close' price for prediction
-    data = data[['Close']]
-    # Convert the dates into numeric values for polynomial regression
-    data['Date'] = data.index
-    data['Date'] = data['Date'].map(datetime.toordinal)  # Convert date to ordinal format (number of days since 1/1/0001)
-
-    # Prepare the features and target variables for regression
-    X = data['Date'].values.reshape(-1, 1)  # Feature: date as number
-    y = data['Close'].values  # Target: closing price
-
-    # Apply Polynomial Regression (degree 3 is a good choice for stock price prediction)
-    poly = PolynomialFeatures(degree=3)
-    X_poly = poly.fit_transform(X)
-
-    # Create and train the model
-    model = LinearRegression()
-    model.fit(X_poly, y)
-
-    # Function to predict stock price for a future date
-    def predict_price(future_date):
-       # Convert the future date to ordinal
-       future_date_ordinal = future_date.toordinal()
-       future_date_poly = poly.transform([[future_date_ordinal]])
-    
-    # Predict the price using the trained model
-    predicted_price = model.predict(future_date_poly)
-    return predicted_price[0]
-
-    # Example: Predict stock price for 5 years from now
-    future_date = datetime.now() + timedelta(st.date_input(pd.to_datetime("2030-01-01")))  # 5 years ahead
-    predicted_price = predict_price(future_date)
-
-    print(f"Predicted stock price for {ticker} on {future_date.strftime('%Y-%m-%d')}: ${predicted_price:.2f}")
+	    with tab5:
+	       ticker = st.text_input("Enter Stock Ticker", value="AAPL")
+	
+	    # Download historical stock data
+	    data = yf.download(ticker, start="2010-01-01", end="2024-01-01")
+	    
+	    # Use only the 'Close' price for prediction
+	    data = data[['Close']]
+	    
+	    # Convert the dates into numeric values for polynomial regression
+	    data['Date'] = data.index
+	    data['Date'] = data['Date'].map(datetime.toordinal)  # Convert date to ordinal format (number of days since 1/1/0001)
+	
+	    # Prepare the features and target variables for regression
+	    X = data['Date'].values.reshape(-1, 1)  # Feature: date as number
+	    y = data['Close'].values  # Target: closing price
+	
+	    # Apply Polynomial Regression (degree 3 is a good choice for stock price prediction)
+	    poly = PolynomialFeatures(degree=3)
+	    X_poly = poly.fit_transform(X)
+	
+	    # Create and train the model
+	    model = LinearRegression()
+	    model.fit(X_poly, y)
+	
+	    # Function to predict stock price for a future date
+	    def predict_price(future_date):
+	        # Convert the future date to ordinal
+	        future_date_ordinal = future_date.toordinal()
+	        future_date_poly = poly.transform([[future_date_ordinal]])
+	
+	        # Predict the price using the trained model
+	        predicted_price = model.predict(future_date_poly)
+	        return predicted_price[0]
+	
+	    # Example: User selects the future date via the Streamlit input
+	    future_date_input = st.date_input("Select Future Date", value=datetime.now() + timedelta(days=365*5))  # Default: 5 years ahead
+	
+	    # Convert the date input to datetime object
+	    future_date = pd.to_datetime(future_date_input)
+	
+	    # Predict the price for the selected future date
+	    predicted_price = predict_price(future_date)
+	
+	    # Display the predicted price
+	    st.write(f"Predicted stock price for {ticker} on {future_date.strftime('%Y-%m-%d')}: ${predicted_price:.2f}")
