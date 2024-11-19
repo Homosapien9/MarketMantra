@@ -456,7 +456,7 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
-	    with tab5:
+with tab5:
 	       ticker = st.text_input("Enter Stock Ticker", value="AAPL")
 	
 	    # Download historical stock data
