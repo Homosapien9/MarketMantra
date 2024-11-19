@@ -433,8 +433,6 @@ with tab4:
     avg_prob_up = avg_probabilities[1]  # Average probability for "up"
     avg_prob_down = avg_probabilities[0]  # Average probability for "down"
 
-    # Display average predictions
-    st.write("### Average Prediction Across All Models")
     if avg_prob_up > avg_prob_down:
         st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.**]")
         st.metric(label="Average Probability (Up)", value=f"{avg_prob_up*100:.2f}%")
