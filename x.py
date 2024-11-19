@@ -465,7 +465,7 @@ with tab5:
     from sklearn.preprocessing import PolynomialFeatures
     from datetime import datetime, timedelta
 
-    data = yf.download(stock_symbol, start="2010-01-01", end=datetime.now().date())
+    data = yf.download(stock_symbol, start="2024-01-01", end=datetime.now().date())
 
     # Check if data is fetched
     if data.empty:
