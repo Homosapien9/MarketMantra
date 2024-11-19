@@ -460,7 +460,7 @@ with tab5:
         # Download historical stock data
         yf.download(stock_symbol, start=to_datetime("2024-01-01"), end=datetime.now().date())
 	    
-	# Use only the 'Close' price for prediction
+	 # Use only the 'Close' price for prediction
 	data = data[['Close']]
 	# Convert the dates into numeric values for polynomial regression
 	data['Date'] = data.index
