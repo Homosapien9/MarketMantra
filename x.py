@@ -512,4 +512,4 @@ with tab5:
         predicted_price = predict_price(future_date)
 
         # Display the predicted price
-        st.write(f"Predicted stock price for {stock_symbol} on {future_date.strftime('%Y-%m-%d')}: ${predicted_price:.2f}")
+        st.write(f"Predicted stock price for {stock_symbol} on {future_date.strftime('%Y-%m-%d')}: {predicted_price:.2f}")
