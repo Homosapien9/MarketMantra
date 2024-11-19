@@ -443,8 +443,8 @@ with tab4:
 # Analyze the trend (Simple Moving Averages as example)
     short_term_window = 20  # 20-day SMA for short-term trend
     long_term_window = 50   # 50-day SMA for long-term trend
-    sma_short = data['Close'].rolling(window=short_term_window).mean()
-    sma_long = data['Close'].rolling(window=long_term_window).mean()
+    sma_short = df['Close'].rolling(window=short_term_window).mean()
+    sma_long = df['Close'].rolling(window=long_term_window).mean()
 
     # Determine the trend
     if sma_short.iloc[-1] > sma_long.iloc[-1]:
