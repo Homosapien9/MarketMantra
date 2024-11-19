@@ -1,11 +1,9 @@
-import pycountry
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
-from newspaper import Article
 from datetime import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -422,28 +420,48 @@ with tab3:
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
 
-    # Calculate probabilities for tomorrow's prediction
-    all_model_predictions = [model.predict_proba(latest_data_scaled) for model in models.values()]
-    avg_probabilities = np.mean(all_model_predictions, axis=0)
-    avg_prob_up = avg_probabilities[1]
-    avg_prob_down = avg_probabilities[0]
+    try:
+        # Calculate probabilities for tomorrow's prediction
+        all_model_predictions = [model.predict_proba(latest_data_scaled) for model in models.values()]
 
-    if avg_prob_up > avg_prob_down:
-        st.write(":green[The stock is likely to rise tomorrow.]")
-        st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
-    else:
-        st.write(":red[The stock is likely to fall tomorrow.]")
-        st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
-    
-    short_term_window = 50
-    long_term_window = 200
-    sma_short = df['Close'].rolling(window=short_term_window).mean()
-    sma_long = df['Close'].rolling(window=long_term_window).mean()
+        # Check dimensions of each prediction
+        for idx, prediction in enumerate(all_model_predictions):
+            if len(prediction.shape) == 1 or prediction.shape[1] != 2:
+                st.error(f"Model {list(models.keys())[idx]} returned unexpected shape: {prediction.shape}")
+                st.stop()
 
-    # Determine the trend
-    if sma_short.iloc[-1] > sma_long.iloc[-1]:
-        st.write(":green[**Bullish**]")
-        st.write("The stock is currently in a bullish trend (short-term price is above the long-term price).")
-    else:
-        st.write(":red[**Bearish**]")
-        st.write("The stock is currently in a bearish trend (short-term price is below the long-term price).")
+        # Average probabilities across models
+        avg_probabilities = np.mean(all_model_predictions, axis=0)
+
+        # Ensure avg_probabilities shape is valid
+        if avg_probabilities.shape[0] != 1:
+            st.error(f"Unexpected shape of avg_probabilities: {avg_probabilities.shape}")
+            st.stop()
+
+        avg_prob_up = avg_probabilities[0, 1]
+        avg_prob_down = avg_probabilities[0, 0]
+
+        # Display predictions
+        if avg_prob_up > avg_prob_down:
+            st.write(":green[The stock is likely to rise tomorrow.]")
+            st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
+        else:
+            st.write(":red[The stock is likely to fall tomorrow.]")
+            st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
+        
+        # Moving Average Analysis
+        short_term_window = 50
+        long_term_window = 200
+        sma_short = df['Close'].rolling(window=short_term_window).mean()
+        sma_long = df['Close'].rolling(window=long_term_window).mean()
+
+        # Determine the trend
+        if sma_short.iloc[-1] > sma_long.iloc[-1]:
+            st.write(":green[**Bullish**]")
+            st.write("The stock is currently in a bullish trend (short-term price is above the long-term price).")
+        else:
+            st.write(":red[**Bearish**]")
+            st.write("The stock is currently in a bearish trend (short-term price is below the long-term price).")
+
+    except Exception as e:
+        st.error(f"Error in Tab 4: {e}")
