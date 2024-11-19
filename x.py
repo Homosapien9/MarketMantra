@@ -422,25 +422,43 @@ with tab3:
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
 
-    # Prediction logic: Calculate probability of upward trend
-    predicted_probabilities = models[selected_model].predict_proba(latest_data_scaled)
-    predicted_probability_up = predicted_probabilities[0][1]  # Probability for "up"
-    predicted_probability_down = predicted_probabilities[0][0]  # Probability for "down"
+    # Collect predictions from all models
+    all_model_predictions = []
+    for model_name, model in models.items():
+        probabilities = model.predict_proba(latest_data_scaled)
+        all_model_predictions.append(probabilities[0])  # Collect [down_prob, up_prob]
 
-    # Decision thresholds for "safer" predictions
-    threshold_up = 0.55  # Minimum probability to predict "up"
-    threshold_down = 0.45  # Maximum probability to predict "down"
+    # Calculate average probabilities across all models
+    avg_probabilities = sum(all_model_predictions) / len(all_model_predictions)
+    avg_prob_up = avg_probabilities[1]  # Average probability for "up"
+    avg_prob_down = avg_probabilities[0]  # Average probability for "down"
 
-    if predicted_probability_up >= threshold_up:
-        st.write(":green[**Prediction:** The asset is likely to increase in value tomorrow.]")
-        st.metric(label="Probability (Up)", value=f"{predicted_probability_up*100:.2f}%")
-        st.write("**Recommendation:** Consider buying or holding the asset.")
-    elif predicted_probability_down <= threshold_down:
-        st.write(":red[**Prediction:** The asset is likely to decrease in value tomorrow.]")
-        st.metric(label="Probability (Down)", value=f"{predicted_probability_down*100:.2f}%")
-        st.write("**Recommendation:** Consider selling the asset.")
+    # Display predictions for the selected model
+    selected_model_probabilities = models[selected_model].predict_proba(latest_data_scaled)
+    selected_model_prob_up = selected_model_probabilities[0][1]  # Probability for "up"
+    selected_model_prob_down = selected_model_probabilities[0][0]  # Probability for "down"
+
+    st.write(f"### Selected Model: {selected_model}")
+    if selected_model_prob_up >= 0.55:
+        st.write(":green[**Prediction (Selected Model): The asset is likely to increase in value tomorrow.]")
+        st.metric(label="Probability (Up)", value=f"{selected_model_prob_up*100:.2f}%")
+    elif selected_model_prob_down <= 0.45:
+        st.write(":red[**Prediction (Selected Model): The asset is likely to decrease in value tomorrow.]")
+        st.metric(label="Probability (Down)", value=f"{selected_model_prob_down*100:.2f}%")
     else:
-        st.write(":orange[**Prediction:** The asset movement is uncertain.]")
-        st.write("**Recommendation:** Exercise caution and avoid making significant trades.")
-        
-    st.caption("Predictions are based on historical data and machine learning models.")
+        st.write(":orange[**Prediction (Selected Model): The asset movement is uncertain.]")
+
+    st.divider()  # Separate individual prediction and average
+
+    # Display average predictions
+    st.write("### Average Prediction Across All Models")
+    if avg_prob_up >= 0.55:
+        st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.]")
+        st.metric(label="Average Probability (Up)", value=f"{avg_prob_up*100:.2f}%")
+    elif avg_prob_down <= 0.45:
+        st.write(":red[**Prediction (Average): The asset is likely to decrease in value tomorrow.]")
+        st.metric(label="Average Probability (Down)", value=f"{avg_prob_down*100:.2f}%")
+    else:
+        st.write(":orange[**Prediction (Average): The asset movement is uncertain.]")
+
+    st.caption("Predictions are based on the average outputs of all models and selected model probabilities.")
