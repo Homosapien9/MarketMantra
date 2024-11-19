@@ -453,6 +453,9 @@ with tab4:
             st.write(":red[The stock is likely to fall tomorrow.]")
             st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
 
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+
 with tab5:
     data = yf.download(ticker, start="2010-01-01", end="2024-01-01")
     # Use only the 'Close' price for prediction
