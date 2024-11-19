@@ -422,27 +422,21 @@ with tab3:
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
 
-    # Collect predictions from all models
-    all_model_predictions = []
-    for model_name, model in models.items():
-        probabilities = model.predict_proba(latest_data_scaled)
-        all_model_predictions.append(probabilities[0])  # Collect [down_prob, up_prob]
-
-    # Calculate average probabilities across all models
-    avg_probabilities = sum(all_model_predictions) / len(all_model_predictions)
-    avg_prob_up = avg_probabilities[1]  # Average probability for "up"
-    avg_prob_down = avg_probabilities[0]  # Average probability for "down"
+    # Calculate probabilities for tomorrow's prediction
+    all_model_predictions = [model.predict_proba(latest_data_scaled) for model in models.values()]
+    avg_probabilities = np.mean(all_model_predictions, axis=0)
+    avg_prob_up = avg_probabilities[1]
+    avg_prob_down = avg_probabilities[0]
 
     if avg_prob_up > avg_prob_down:
-        st.write(":green[**Prediction (Average): The asset is likely to increase in value tomorrow.**]")
-        st.metric(label="Average Probability (Up)", value=f"{avg_prob_up*100:.2f}%")
+        st.write(":green[The stock is likely to rise tomorrow.]")
+        st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
     else:
-        st.write(":red[**Prediction (Average): The asset is likely to decrease in value tomorrow.**]")
-        st.metric(label="Average Probability (Down)", value=f"{avg_prob_down*100:.2f}%")
-
-# Analyze the trend (Simple Moving Averages as example)
-    short_term_window = 20  # 20-day SMA for short-term trend
-    long_term_window = 50   # 50-day SMA for long-term trend
+        st.write(":red[The stock is likely to fall tomorrow.]")
+        st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
+    
+    short_term_window = 50
+    long_term_window = 200
     sma_short = df['Close'].rolling(window=short_term_window).mean()
     sma_long = df['Close'].rolling(window=long_term_window).mean()
 
