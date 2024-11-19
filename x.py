@@ -454,8 +454,17 @@ with tab4:
         sma_short = df['Close'].rolling(window=short_term_window).mean()
         sma_long = df['Close'].rolling(window=long_term_window).mean()
 
+        # Ensure we're accessing scalar values and not NaN values
+        last_sma_short = sma_short.iloc[-1]
+        last_sma_long = sma_long.iloc[-1]
+
+        # Check for NaN values in the last element of both SMAs
+        if pd.isna(last_sma_short) or pd.isna(last_sma_long):
+            st.error("NaN values found in the moving averages. Check your data.")
+            st.stop()
+
         # Compare the last values (scalar) of the moving averages
-        if sma_short.iloc[-1] > sma_long.iloc[-1]:  # Compare the last value, not the whole Series
+        if last_sma_short > last_sma_long:  # Compare the last value, not the whole Series
             st.write(":green[**Bullish**]")
             st.write("The stock is currently in a bullish trend (short-term price is above the long-term price).")
         else:
