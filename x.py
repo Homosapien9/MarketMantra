@@ -454,10 +454,10 @@ with tab4:
         st.error(f"An error occurred: {str(e)}")
         
     def calculate_investment_return(start_date, stock_ticker, alt_ticker, investment_amount):
-    def fetch_stock_data(ticker):
-        stock_data = yf.Ticker(ticker)
-        hist = stock_data.history(period="max", auto_adjust=True)
-        return hist
+        def fetch_stock_data(ticker):
+            stock_data = yf.Ticker(ticker)
+            hist = stock_data.history(period="max", auto_adjust=True)
+            return hist
 
     def calculate_growth_and_dividends(data, investment_date, initial_investment):
         # Find the stock price at the investment date
