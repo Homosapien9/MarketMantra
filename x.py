@@ -482,32 +482,38 @@ with tab5:
                 def find_nearest_date(data, target_date):
                     # Ensure both are timezone-naive for comparison
                     target_date = pd.Timestamp(target_date).tz_localize(None)
-                    date_diff = abs(data.index.tz_localize(None) - target_date)
-                    nearest_date_index = date_diff.argmin()
+                    nearest_date_index = abs(data.index.tz_localize(None) - target_date).argmin()
                     return data.index[nearest_date_index]
 
-                # Function to display selected date stats
+                # Function to display stats for the selected or nearest date
                 def get_daily_stats(data, ticker, date):
                     # Ensure the date is timezone-naive
                     date = pd.Timestamp(date).tz_localize(None)
-                    if date in data.index:
-                        high = data.loc[date, 'High']
-                        low = data.loc[date, 'Low']
-                        close = data.loc[date, 'Close']
-                        sma_50 = data.loc[date, 'SMA_50']
-                        sma_200 = data.loc[date, 'SMA_200']
-                        return {
-                            "Ticker": ticker,
-                            "High": f"{high:.2f}",
-                            "Low": f"{low:.2f}",
-                            "Close": f"{close:.2f}",
-                            "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
-                            "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
-                            "Nearest Date": "Exact"  # Used for clarification in the table
-                        }
-                    else:
+                    if date not in data.index:
+                        # Find the nearest date if the exact date is not available
                         nearest_date = find_nearest_date(data, date)
-                        return get_daily_stats(data, ticker, nearest_date)
+                        nearest = True
+                    else:
+                        nearest_date = date
+                        nearest = False
+
+                    # Extract the stats for the nearest date
+                    high = data.loc[nearest_date, 'High']
+                    low = data.loc[nearest_date, 'Low']
+                    close = data.loc[nearest_date, 'Close']
+                    sma_50 = data.loc[nearest_date, 'SMA_50']
+                    sma_200 = data.loc[nearest_date, 'SMA_200']
+
+                    return {
+                        "Ticker": ticker,
+                        "Date Used": nearest_date.strftime('%Y-%m-%d'),
+                        "High": f"{high:.2f}",
+                        "Low": f"{low:.2f}",
+                        "Close": f"{close:.2f}",
+                        "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
+                        "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
+                        "Nearest Date Used": nearest  # Indicate if the date was adjusted
+                    }
 
                 # Convert selected date to pandas timestamp
                 selected_date = pd.Timestamp(selected_date)
@@ -516,22 +522,22 @@ with tab5:
                 stats1 = get_daily_stats(data1, asset1, selected_date)
                 stats2 = get_daily_stats(data2, asset2, selected_date)
 
-                # Show warning for nearest date (if applicable)
+                # Display the results
                 warnings = []
-                if stats1["Nearest Date"] != "Exact":
-                    warnings.append(f"{asset1}: Nearest date used is {stats1['Nearest Date']}.")
-                if stats2["Nearest Date"] != "Exact":
-                    warnings.append(f"{asset2}: Nearest date used is {stats2['Nearest Date']}.")
-                
+                if stats1["Nearest Date Used"]:
+                    warnings.append(f"{asset1}: Nearest date used is {stats1['Date Used']}.")
+                if stats2["Nearest Date Used"]:
+                    warnings.append(f"{asset2}: Nearest date used is {stats2['Date Used']}.")
+
                 if warnings:
                     st.warning(" ".join(warnings))
 
-                # Display the results
+                # Show stats without "Nearest Date Used" field
                 st.write("### Comparison of Assets")
                 st.write("#### Asset 1:")
-                st.table(pd.DataFrame([stats1]).drop(columns=["Nearest Date"]))
+                st.table(pd.DataFrame([stats1]).drop(columns=["Nearest Date Used"]))
                 st.write("#### Asset 2:")
-                st.table(pd.DataFrame([stats2]).drop(columns=["Nearest Date"]))
+                st.table(pd.DataFrame([stats2]).drop(columns=["Nearest Date Used"]))
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
