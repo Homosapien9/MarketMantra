@@ -498,6 +498,5 @@ with tab4:
     primary_results = calculate_growth_and_dividends(primary_data, start_date, investment_amount)
     alt_results = calculate_growth_and_dividends(alt_data, start_date, investment_amount)
 
-    return {
-        "Primary Stock": primary_results,
-        "Alternative Stock": alt_results
+    return {"Primary Stock": primary_results,
+            "Alternative Stock": alt_results}
