@@ -452,3 +452,52 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
+        
+    def calculate_investment_return(start_date, stock_ticker, alt_ticker, investment_amount):
+    def fetch_stock_data(ticker):
+        stock_data = yf.Ticker(ticker)
+        hist = stock_data.history(period="max", auto_adjust=True)
+        return hist
+
+    def calculate_growth_and_dividends(data, investment_date, initial_investment):
+        # Find the stock price at the investment date
+        start_price = data.loc[investment_date]["Close"]
+        # Total dividends collected
+        total_dividends = data.loc[investment_date:]["Dividends"].sum()
+        # Current stock price
+        current_price = data["Close"].iloc[-1]
+        # Calculate total return
+        final_value = (initial_investment / start_price) * current_price
+        return {
+            "Start Price": start_price,
+            "Current Price": current_price,
+            "Total Dividends": total_dividends,
+            "Final Value": final_value,
+            "Total Return (with Dividends)": final_value + total_dividends
+        }
+
+    # Fetch stock data
+    try:
+        primary_data = fetch_stock_data(stock_ticker)
+        alt_data = fetch_stock_data(alt_ticker)
+    except Exception as e:
+        return f"Error fetching data: {e}"
+
+    # Validate date and filter data
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    if start_date not in primary_data.index:
+        primary_data = primary_data[primary_data.index >= start_date]
+    if start_date not in alt_data.index:
+        alt_data = alt_data[alt_data.index >= start_date]
+
+    # Ensure data starts from valid dates
+    if primary_data.empty or alt_data.empty:
+        return "No data available for one or both tickers from the specified date."
+
+    # Calculate returns for both stocks
+    primary_results = calculate_growth_and_dividends(primary_data, start_date, investment_amount)
+    alt_results = calculate_growth_and_dividends(alt_data, start_date, investment_amount)
+
+    return {
+        "Primary Stock": primary_results,
+        "Alternative Stock": alt_results
