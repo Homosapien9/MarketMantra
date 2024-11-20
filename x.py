@@ -457,7 +457,7 @@ with tab4:
         stock_data = yf.Ticker(stock_ticker)
 
     def fetch_stock_data(stock_ticker, start_date, output_dict):
-    stock_data = yf.Ticker(stock_ticker)
+        stock_data = yf.Ticker(stock_ticker)
 
     try:
         # Fetch historical data
