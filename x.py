@@ -453,6 +453,12 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
+import yfinance as yf
+import pandas as pd
+import streamlit as st
+from datetime import datetime
+
+# Tab 5: Asset Comparison
 with tab5:
     st.title("Compare Two Assets with SMA and Daily Stats")
 
@@ -498,11 +504,12 @@ with tab5:
                         nearest = False
 
                     # Extract the stats for the nearest date
-                    high = data.loc[nearest_date, 'High']
-                    low = data.loc[nearest_date, 'Low']
-                    close = data.loc[nearest_date, 'Close']
-                    sma_50 = data.loc[nearest_date, 'SMA_50']
-                    sma_200 = data.loc[nearest_date, 'SMA_200']
+                    stats_row = data.loc[nearest_date]
+                    high = stats_row['High']
+                    low = stats_row['Low']
+                    close = stats_row['Close']
+                    sma_50 = stats_row['SMA_50']
+                    sma_200 = stats_row['SMA_200']
 
                     return {
                         "Ticker": ticker,
