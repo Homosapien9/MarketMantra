@@ -452,7 +452,6 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-
 import yfinance as yf
 import pandas as pd
 import streamlit as st
@@ -505,9 +504,9 @@ with tab5:
 
                     # Extract the stats for the nearest date
                     stats_row = data.loc[nearest_date]
-                    high = stats_row['High']
-                    low = stats_row['Low']
-                    close = stats_row['Close']
+                    high = float(stats_row['High'])  # Convert to scalar
+                    low = float(stats_row['Low'])  # Convert to scalar
+                    close = float(stats_row['Close'])  # Convert to scalar
                     sma_50 = stats_row['SMA_50']
                     sma_200 = stats_row['SMA_200']
 
