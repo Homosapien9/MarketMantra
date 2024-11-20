@@ -454,19 +454,9 @@ with tab4:
         st.error(f"An error occurred: {str(e)}")
         
     def calculate_investment_return(start_date, stock_ticker, investment_amount):
-    """
-    Calculate the investment return for a stock, including dividends.
+        stock_data = yf.Ticker(stock_ticker)
 
-    Args:
-        start_date (str): The start date of the investment (YYYY-MM-DD).
-        stock_ticker (str): The ticker symbol of the stock.
-        investment_amount (float): The initial investment amount.
-
-    Returns:
-        dict: A dictionary containing investment results.
-    """
-    # Download stock data from Yahoo Finance
-    stock_data = yf.Ticker(stock_ticker)
+    
     try:
         hist = stock_data.history(start=start_date)
     except Exception as e:
