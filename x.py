@@ -503,10 +503,10 @@ with tab5:
                             "Close": f"{close:.2f}",
                             "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
                             "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
+                            "Nearest Date": "Exact"  # Used for clarification in the table
                         }
                     else:
                         nearest_date = find_nearest_date(data, date)
-                        st.warning(f"Exact date not found. Showing data for the nearest date: {nearest_date.strftime('%Y-%m-%d')}")
                         return get_daily_stats(data, ticker, nearest_date)
 
                 # Convert selected date to pandas timestamp
@@ -516,12 +516,22 @@ with tab5:
                 stats1 = get_daily_stats(data1, asset1, selected_date)
                 stats2 = get_daily_stats(data2, asset2, selected_date)
 
+                # Show warning for nearest date (if applicable)
+                warnings = []
+                if stats1["Nearest Date"] != "Exact":
+                    warnings.append(f"{asset1}: Nearest date used is {stats1['Nearest Date']}.")
+                if stats2["Nearest Date"] != "Exact":
+                    warnings.append(f"{asset2}: Nearest date used is {stats2['Nearest Date']}.")
+                
+                if warnings:
+                    st.warning(" ".join(warnings))
+
                 # Display the results
                 st.write("### Comparison of Assets")
                 st.write("#### Asset 1:")
-                st.table(pd.DataFrame([stats1]))
+                st.table(pd.DataFrame([stats1]).drop(columns=["Nearest Date"]))
                 st.write("#### Asset 2:")
-                st.table(pd.DataFrame([stats2]))
+                st.table(pd.DataFrame([stats2]).drop(columns=["Nearest Date"]))
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
