@@ -453,50 +453,51 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         
-    def calculate_investment_return(start_date, stock_ticker, alt_ticker, investment_amount):
-        def fetch_stock_data(ticker):
-            stock_data = yf.Ticker(ticker)
-            hist = stock_data.history(period="max", auto_adjust=True)
-            return hist
+    def calculate_investment_return(start_date, stock_ticker, investment_amount):
+    """
+    Calculate the investment return for a stock, including dividends.
 
-    def calculate_growth_and_dividends(data, investment_date, initial_investment):
-        # Find the stock price at the investment date
-        start_price = data.loc[investment_date]["Close"]
-        # Total dividends collected
-        total_dividends = data.loc[investment_date:]["Dividends"].sum()
-        # Current stock price
-        current_price = data["Close"].iloc[-1]
-        # Calculate total return
-        final_value = (initial_investment / start_price) * current_price
-        return {
-            "Start Price": start_price,
-            "Current Price": current_price,
-            "Total Dividends": total_dividends,
-            "Final Value": final_value,
-            "Total Return (with Dividends)": final_value + total_dividends
-        }
+    Args:
+        start_date (str): The start date of the investment (YYYY-MM-DD).
+        stock_ticker (str): The ticker symbol of the stock.
+        investment_amount (float): The initial investment amount.
 
-    # Fetch stock data
+    Returns:
+        dict: A dictionary containing investment results.
+    """
+    # Download stock data from Yahoo Finance
+    stock_data = yf.Ticker(stock_ticker)
     try:
-        primary_data = fetch_stock_data(stock_ticker)
-        alt_data = fetch_stock_data(alt_ticker)
+        hist = stock_data.history(start=start_date)
     except Exception as e:
-        return f"Error fetching data: {e}"
+        return {"error": f"Unable to fetch data for the stock '{stock_ticker}'. {str(e)}"}
 
-    # Validate date and filter data
-    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    if start_date not in primary_data.index:
-        primary_data = primary_data[primary_data.index >= start_date]
-    if start_date not in alt_data.index:
-        alt_data = alt_data[alt_data.index >= start_date]
+    # Check if data exists
+    if hist.empty:
+        return {"error": f"No data available for the stock '{stock_ticker}' from {start_date}."}
 
-    # Ensure data starts from valid dates
-    if primary_data.empty or alt_data.empty:
-        return "No data available for one or both tickers from the specified date."
+    # Get start and current prices
+    start_price = hist['Close'].iloc[0]
+    current_price = hist['Close'].iloc[-1]
 
-    # Calculate returns for both stocks
-    primary_results = calculate_growth_and_dividends(primary_data, start_date, investment_amount)
-    alt_results = calculate_growth_and_dividends(alt_data, start_date, investment_amount)
+    # Calculate dividend payouts
+    total_dividends = hist['Dividends'].sum()
 
-    return {"Primary Stock": primary_results,
-            "Alternative Stock": alt_results}
+    # Calculate returns
+    shares_bought = investment_amount / start_price
+    final_value = shares_bought * current_price
+    total_return = final_value + (shares_bought * total_dividends)
+    return_percentage = ((total_return - investment_amount) / investment_amount) * 100
+
+    # Return results
+    return {
+        "stock_ticker": stock_ticker,
+        "start_date": start_date,
+        "investment_amount": investment_amount,
+        "start_price": start_price,
+        "current_price": current_price,
+        "total_dividends": total_dividends,
+        "final_value": final_value,
+        "total_return": total_return,
+        "return_percentage": return_percentage,
+    }
