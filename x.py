@@ -452,12 +452,7 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-        
-import yfinance as yf
-import pandas as pd
-import streamlit as st
 
-# Tab 5: Asset Comparison
 with tab5:
     st.title("Compare Two Assets with SMA and Daily Stats")
 
