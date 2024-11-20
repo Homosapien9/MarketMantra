@@ -516,7 +516,7 @@ with tab5:
         st.title("Asset Investment Return Calculator")
         
         # User inputs
-        stock_ticker = st.text_input("Enter asset ticker", "JSWSTEEL.NS")
+        stock_ticker = stock_symbol
         start_date = st.date_input("Enter Start Date", pd.to_datetime("2016-01-01"))
         investment_amount = st.number_input("Enter Investment Amount", min_value=1, value=1000000)
         
