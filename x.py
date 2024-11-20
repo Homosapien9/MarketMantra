@@ -463,10 +463,10 @@ with tab5:
 
     # Ensure both assets and a date are provided
     if asset1 and asset2:
-        # Download historical data for both assets
         try:
-            data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
-            data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
+            # Download historical data for both assets
+            data1 = yf.download(asset1, start="2010-01-01", end=datetime.now().strftime("%Y-%m-%d"))
+            data2 = yf.download(asset2, start="2010-01-01", end=datetime.now().strftime("%Y-%m-%d"))
 
             # Check if data is available
             if data1.empty or data2.empty:
@@ -495,7 +495,11 @@ with tab5:
                             "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
                         }
                     else:
-                        return {"Ticker": ticker, "Error": "Date not found in historical data."}
+                        # Suggest the nearest available date
+                        nearest_date = data.index.get_loc(date, method='nearest')
+                        nearest_date_value = data.index[nearest_date]
+                        st.warning(f"Exact date not found. Showing data for the nearest date: {nearest_date_value.strftime('%Y-%m-%d')}")
+                        return get_daily_stats(data, ticker, nearest_date_value)
 
                 # Get stats for the selected date
                 selected_date = pd.Timestamp(selected_date)  # Convert Streamlit date to Pandas timestamp
