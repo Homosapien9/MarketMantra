@@ -461,9 +461,9 @@ with tab5:
     selected_date = st.date_input("Select a date to view High, Low, Close prices:")
         
     if st.button("Compare Assets"):
-    # Download historical data for both assets
-    data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
-    data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
+        # Download historical data for both assets
+        data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
+        data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
 
     # Calculate 50-day and 200-day SMAs
     data1['SMA_50'] = data1['Close'].rolling(window=50).mean()
