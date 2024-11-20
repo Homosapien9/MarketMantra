@@ -272,7 +272,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions"])
+tab1, tab2, tab3, tab4 ,tab5= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "calculate ROI"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -452,54 +452,81 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
+
+with tab5:
+        def fetch_stock_data(stock_ticker, start_date):
+            stock_data = yf.Ticker(stock_ticker)
+            try:
+                hist = stock_data.history(start=start_date)
+                if hist.empty:
+                    return None, f"No data available for the stock '{stock_ticker}' from {start_date}."
+                else:
+                    return hist, None
+            except Exception as e:
+                return None, f"Failed to fetch data for '{stock_ticker}': {str(e)}"
         
-    def calculate_investment_return(start_date, stock_ticker, investment_amount):
-        stock_data = yf.Ticker(stock_ticker)
-
-    def fetch_stock_data(stock_ticker, start_date, output_dict):
-        stock_data = yf.Ticker(stock_ticker)
-
-    try:
-        # Fetch historical data
-        hist = stock_data.history(start=start_date)
-        if hist.empty:
-            output_dict["data"] = None
-            output_dict["error"] = f"No data available for the stock '{stock_ticker}' from {start_date}."
-        else:
-            output_dict["data"] = hist
-            output_dict["error"] = None
-    except Exception as e:
-        output_dict["data"] = None
-        output_dict["error"] = f"Failed to fetch data for '{stock_ticker}': {str(e)}"
-
-# Example Usage
-output = {}
-fetch_stock_data("AAPL", "2000-01-01", output)
-
-if output["error"]:
-    print(output["error"])
-else:
-    print(output["data"].head())
-
-    # Get start and current prices
-    start_price = hist['Close'].iloc[0]
-    current_price = hist['Close'].iloc[-1]
-
-    # Calculate dividend payouts
-    total_dividends = hist['Dividends'].sum()
-
-    # Calculate returns
-    shares_bought = investment_amount / start_price
-    final_value = shares_bought * current_price
-    total_return = final_value + (shares_bought * total_dividends)
-    return_percentage = ((total_return - investment_amount) / investment_amount) * 100
-    output_dict["stock_ticker"] = stock_ticker
-    output_dict["start_date"] = start_date
-    output_dict["investment_amount"] = investment_amount
-    output_dict["start_price"] = start_price
-    output_dict["current_price"] = current_price
-    output_dict["total_dividends"] = total_dividends
-    output_dict["final_value"] = final_value
-    output_dict["total_return"] = total_return
-    output_dict["return_percentage"] = return_percentage
-    output_dict["error"] = None
+        # Function to calculate investment return
+        def calculate_investment_return(start_date, stock_ticker, investment_amount):
+            # Fetch stock data
+            hist, error = fetch_stock_data(stock_ticker, start_date)
+            if error:
+                return None, error  # Return error if there's a problem fetching the data
+            
+            # Get the price at the start date
+            try:
+                start_price = hist.loc[start_date]["Close"]
+            except KeyError:
+                return None, f"Start date {start_date} is not available in the historical data."
+            
+            # Get the current price (most recent close price)
+            current_price = hist["Close"].iloc[-1]
+            
+            # Calculate total dividends (if available)
+            total_dividends = hist["Dividends"].sum()
+        
+            # Final value considering price change and dividends
+            final_value = (investment_amount / start_price) * current_price + total_dividends
+        
+            # Calculate total return and return percentage
+            total_return = final_value - investment_amount
+            return_percentage = (total_return / investment_amount) * 100
+        
+            # Return the results
+            return {
+                "stock_ticker": stock_ticker,
+                "start_date": start_date,
+                "investment_amount": investment_amount,
+                "start_price": start_price,
+                "current_price": current_price,
+                "total_dividends": total_dividends,
+                "final_value": final_value,
+                "total_return": total_return,
+                "return_percentage": return_percentage
+            }, None
+        
+        # Streamlit UI components
+        st.title("Stock Investment Return Calculator")
+        
+        # User inputs
+        stock_ticker = st.text_input("Enter Stock Ticker (e.g., 'AAPL')", "MRF.NS")
+        start_date = st.date_input("Enter Start Date", pd.to_datetime("2010-01-01"))
+        investment_amount = st.number_input("Enter Investment Amount (₹)", min_value=1, value=10000)
+        
+        # Button to trigger calculation
+        if st.button("Calculate Investment Return"):
+            # Calculate investment return
+            result, error = calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
+            
+            if error:
+                # Display error if there's an issue
+                st.error(error)
+            else:
+                # Display the results if successful
+                st.success(f"Investment in {stock_ticker} from {start_date.strftime('%Y-%m-%d')}")
+                st.write(f"Initial Investment: ₹{investment_amount}")
+                st.write(f"Start Price: ₹{result['start_price']}")
+                st.write(f"Current Price: ₹{result['current_price']}")
+                st.write(f"Total Dividends: ₹{result['total_dividends']}")
+                st.write(f"Final Value: ₹{result['final_value']}")
+                st.write(f"Total Return: ₹{result['total_return']}")
+                st.write(f"Return Percentage: {result['return_percentage']:.2f}%")
