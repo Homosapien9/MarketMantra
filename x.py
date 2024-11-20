@@ -493,16 +493,13 @@ else:
     final_value = shares_bought * current_price
     total_return = final_value + (shares_bought * total_dividends)
     return_percentage = ((total_return - investment_amount) / investment_amount) * 100
-
-    # Return results
-    return {
-        "stock_ticker": stock_ticker,
-        "start_date": start_date,
-        "investment_amount": investment_amount,
-        "start_price": start_price,
-        "current_price": current_price,
-        "total_dividends": total_dividends,
-        "final_value": final_value,
-        "total_return": total_return,
-        "return_percentage": return_percentage,
-    }
+    output_dict["stock_ticker"] = stock_ticker
+    output_dict["start_date"] = start_date
+    output_dict["investment_amount"] = investment_amount
+    output_dict["start_price"] = start_price
+    output_dict["current_price"] = current_price
+    output_dict["total_dividends"] = total_dividends
+    output_dict["final_value"] = final_value
+    output_dict["total_return"] = total_return
+    output_dict["return_percentage"] = return_percentage
+    output_dict["error"] = None
