@@ -480,12 +480,16 @@ with tab5:
 
                 # Function to find the nearest date in the index
                 def find_nearest_date(data, target_date):
-                    date_diff = abs(data.index - target_date)
+                    # Ensure both are timezone-naive for comparison
+                    target_date = pd.Timestamp(target_date).tz_localize(None)
+                    date_diff = abs(data.index.tz_localize(None) - target_date)
                     nearest_date_index = date_diff.argmin()
                     return data.index[nearest_date_index]
 
                 # Function to display selected date stats
                 def get_daily_stats(data, ticker, date):
+                    # Ensure the date is timezone-naive
+                    date = pd.Timestamp(date).tz_localize(None)
                     if date in data.index:
                         high = data.loc[date, 'High']
                         low = data.loc[date, 'Low']
