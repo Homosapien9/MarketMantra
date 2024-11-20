@@ -517,7 +517,7 @@ with tab5:
         
         # User inputs
         stock_ticker = st.text_input("Enter asset ticker", "JSWSTEEL.NS")
-        start_date = st.date_input("Enter Start Date", pd.to_datetime("2010-01-01"))
+        start_date = st.date_input("Enter Start Date", pd.to_datetime("2016-01-01"))
         investment_amount = st.number_input("Enter Investment Amount", min_value=1, value=1000000)
         
         # Ensure the start date doesn't exceed today's date
