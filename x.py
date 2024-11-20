@@ -478,26 +478,20 @@ with tab5:
             close = data.loc[date, 'Close']
             sma_50 = data.loc[date, 'SMA_50']
             sma_200 = data.loc[date, 'SMA_200']
-            return {
-                    "Ticker": ticker,
+            return {"Ticker": ticker,
                     "High": f"{high:.2f}",
                     "Low": f"{low:.2f}",
                     "Close": f"{close:.2f}",
                     "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
-                    "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
-                }
-            else:
-                return {
-                    "Ticker": ticker,
-                    "Error": "Date not found in historical data."
-                }
-        
+                    "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",}
+        else:
+            return {"Ticker": ticker,
+                    "Error": "Date not found in historical data."}
         # Display the results
         if st.button("Compare Assets"):
             # Get stats for the selected date
             stats1 = get_daily_stats(data1, asset1, pd.Timestamp(selected_date))
             stats2 = get_daily_stats(data2, asset2, pd.Timestamp(selected_date))
-        
             # Show comparison as a table
             st.write("### Comparison of Assets")
             st.write("#### Asset 1:")
