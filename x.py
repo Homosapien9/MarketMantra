@@ -460,16 +460,17 @@ with tab5:
     asset2 = st.text_input("Enter second asset:", "MSFT")
     selected_date = st.date_input("Select a date to view High, Low, Close prices:")
         
+    if st.button("Compare Assets"):
     # Download historical data for both assets
     data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
     data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
-        
+
     # Calculate 50-day and 200-day SMAs
     data1['SMA_50'] = data1['Close'].rolling(window=50).mean()
     data1['SMA_200'] = data1['Close'].rolling(window=200).mean()
     data2['SMA_50'] = data2['Close'].rolling(window=50).mean()
     data2['SMA_200'] = data2['Close'].rolling(window=200).mean()
-        
+
     # Function to display selected date stats
     def get_daily_stats(data, ticker, date):
         if date in data.index:
@@ -486,15 +487,15 @@ with tab5:
                     "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",}
         else:
             return {"Ticker": ticker,
-                    "Error": "Date not found in historical data."}
-        # Display the results
-        if st.button("Compare Assets"):
-            # Get stats for the selected date
-            stats1 = get_daily_stats(data1, asset1, pd.Timestamp(selected_date))
-            stats2 = get_daily_stats(data2, asset2, pd.Timestamp(selected_date))
-            # Show comparison as a table
-            st.write("### Comparison of Assets")
-            st.write("#### Asset 1:")
-            st.table(stats1)
-            st.write("#### Asset 2:")
-            st.table(stats2)
+                    "Error": "Date not found in historical data.",}
+    # Get stats for the selected date
+    selected_date = pd.Timestamp(selected_date)  # Convert Streamlit date to Pandas timestamp
+    stats1 = get_daily_stats(data1, asset1, selected_date)
+    stats2 = get_daily_stats(data2, asset2, selected_date)
+
+    # Display the results
+    st.write("### Comparison of Assets")
+    st.write("#### Asset 1:")
+    st.table(pd.DataFrame([stats1]))
+    st.write("#### Asset 2:")
+    st.table(pd.DataFrame([stats2]))
