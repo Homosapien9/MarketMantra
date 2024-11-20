@@ -453,48 +453,67 @@ with tab4:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         
+import yfinance as yf
+import pandas as pd
+import streamlit as st
+
+# Tab 5: Asset Comparison
 with tab5:
     st.title("Compare Two Assets with SMA and Daily Stats")
+
     # User input for stock tickers and date
-    asset1 = st.text_input("Enter first asset:", "AAPL")
-    asset2 = st.text_input("Enter second asset:", "MSFT")
+    asset1 = st.text_input("Enter first asset (e.g., AAPL):", "AAPL")
+    asset2 = st.text_input("Enter second asset (e.g., MSFT):", "MSFT")
     selected_date = st.date_input("Select a date to view High, Low, Close prices:")
-        
-    if st.button("Compare Assets"):
+
+    # Ensure both assets and a date are provided
+    if asset1 and asset2:
         # Download historical data for both assets
-        data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
-        data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
+        try:
+            data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
+            data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
 
-        # Calculate 50-day and 200-day SMAs
-        data1['SMA_50'] = data1['Close'].rolling(window=50).mean()
-        data1['SMA_200'] = data1['Close'].rolling(window=200).mean()
-        data2['SMA_50'] = data2['Close'].rolling(window=50).mean()
-        data2['SMA_200'] = data2['Close'].rolling(window=200).mean()
-
-        # Function to display selected date stats
-        def get_daily_stats(data, ticker, date):
-            if date in data.index:
-                high = data.loc[date, 'High']
-                low = data.loc[date, 'Low']
-                close = data.loc[date, 'Close']
-                sma_50 = data.loc[date, 'SMA_50']
-                sma_200 = data.loc[date, 'SMA_200']
-                return {"Ticker": ticker,
-                        "High": f"{high:.2f}",
-                        "Low": f"{low:.2f}",
-                        "Close": f"{close:.2f}",
-                        "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
-                        "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",}
+            # Check if data is available
+            if data1.empty or data2.empty:
+                st.warning("Could not retrieve data for one or both tickers. Please check the tickers and try again.")
             else:
-                return {"Ticker": ticker,"Error": "Date not found in historical data.",}
-    # Get stats for the selected date
-    selected_date = pd.Timestamp(selected_date)  # Convert Streamlit date to Pandas timestamp
-    stats1 = get_daily_stats(data1, asset1, selected_date)
-    stats2 = get_daily_stats(data2, asset2, selected_date)
+                # Calculate 50-day and 200-day SMAs
+                data1['SMA_50'] = data1['Close'].rolling(window=50).mean()
+                data1['SMA_200'] = data1['Close'].rolling(window=200).mean()
+                data2['SMA_50'] = data2['Close'].rolling(window=50).mean()
+                data2['SMA_200'] = data2['Close'].rolling(window=200).mean()
 
-    # Display the results
-    st.write("### Comparison of Assets")
-    st.write("#### Asset 1:")
-    st.table(pd.DataFrame([stats1]))
-    st.write("#### Asset 2:")
-    st.table(pd.DataFrame([stats2]))
+                # Function to display selected date stats
+                def get_daily_stats(data, ticker, date):
+                    if date in data.index:
+                        high = data.loc[date, 'High']
+                        low = data.loc[date, 'Low']
+                        close = data.loc[date, 'Close']
+                        sma_50 = data.loc[date, 'SMA_50']
+                        sma_200 = data.loc[date, 'SMA_200']
+                        return {
+                            "Ticker": ticker,
+                            "High": f"{high:.2f}",
+                            "Low": f"{low:.2f}",
+                            "Close": f"{close:.2f}",
+                            "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
+                            "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
+                        }
+                    else:
+                        return {"Ticker": ticker, "Error": "Date not found in historical data."}
+
+                # Get stats for the selected date
+                selected_date = pd.Timestamp(selected_date)  # Convert Streamlit date to Pandas timestamp
+                stats1 = get_daily_stats(data1, asset1, selected_date)
+                stats2 = get_daily_stats(data2, asset2, selected_date)
+
+                # Display the results
+                st.write("### Comparison of Assets")
+                st.write("#### Asset 1:")
+                st.table(pd.DataFrame([stats1]))
+                st.write("#### Asset 2:")
+                st.table(pd.DataFrame([stats2]))
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+    else:
+        st.warning("Please enter both asset tickers and select a date.")
