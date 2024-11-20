@@ -456,15 +456,30 @@ with tab4:
     def calculate_investment_return(start_date, stock_ticker, investment_amount):
         stock_data = yf.Ticker(stock_ticker)
 
-    
-    try:
-        hist = stock_data.history(start=start_date)
-    except Exception as e:
-        return {"error": f"Unable to fetch data for the stock '{stock_ticker}'. {str(e)}"}
+    def fetch_stock_data(stock_ticker, start_date, output_dict):
+    stock_data = yf.Ticker(stock_ticker)
 
-    # Check if data exists
-    if hist.empty:
-        return {"error": f"No data available for the stock '{stock_ticker}' from {start_date}."}
+    try:
+        # Fetch historical data
+        hist = stock_data.history(start=start_date)
+        if hist.empty:
+            output_dict["data"] = None
+            output_dict["error"] = f"No data available for the stock '{stock_ticker}' from {start_date}."
+        else:
+            output_dict["data"] = hist
+            output_dict["error"] = None
+    except Exception as e:
+        output_dict["data"] = None
+        output_dict["error"] = f"Failed to fetch data for '{stock_ticker}': {str(e)}"
+
+# Example Usage
+output = {}
+fetch_stock_data("AAPL", "2000-01-01", output)
+
+if output["error"]:
+    print(output["error"])
+else:
+    print(output["data"].head())
 
     # Get start and current prices
     start_price = hist['Close'].iloc[0]
