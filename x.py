@@ -478,6 +478,12 @@ with tab5:
                 data2['SMA_50'] = data2['Close'].rolling(window=50).mean()
                 data2['SMA_200'] = data2['Close'].rolling(window=200).mean()
 
+                # Function to find the nearest date in the index
+                def find_nearest_date(data, target_date):
+                    date_diff = abs(data.index - target_date)
+                    nearest_date_index = date_diff.argmin()
+                    return data.index[nearest_date_index]
+
                 # Function to display selected date stats
                 def get_daily_stats(data, ticker, date):
                     if date in data.index:
@@ -495,14 +501,14 @@ with tab5:
                             "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
                         }
                     else:
-                        # Suggest the nearest available date
-                        nearest_date = data.index.get_loc(date, method='nearest')
-                        nearest_date_value = data.index[nearest_date]
-                        st.warning(f"Exact date not found. Showing data for the nearest date: {nearest_date_value.strftime('%Y-%m-%d')}")
-                        return get_daily_stats(data, ticker, nearest_date_value)
+                        nearest_date = find_nearest_date(data, date)
+                        st.warning(f"Exact date not found. Showing data for the nearest date: {nearest_date.strftime('%Y-%m-%d')}")
+                        return get_daily_stats(data, ticker, nearest_date)
+
+                # Convert selected date to pandas timestamp
+                selected_date = pd.Timestamp(selected_date)
 
                 # Get stats for the selected date
-                selected_date = pd.Timestamp(selected_date)  # Convert Streamlit date to Pandas timestamp
                 stats1 = get_daily_stats(data1, asset1, selected_date)
                 stats2 = get_daily_stats(data2, asset2, selected_date)
 
