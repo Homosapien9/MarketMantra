@@ -457,7 +457,8 @@ with tab5:
         def fetch_stock_data(stock_ticker, start_date):
             stock_data = yf.Ticker(stock_ticker)
             try:
-                hist = stock_data.history(start=start_date)
+                # Fetch data from start_date till today
+                hist = stock_data.history(start=start_date, end=datetime.today().strftime('%Y-%m-%d'))
                 if hist.empty:
                     return None, f"No data available for the stock '{stock_ticker}' from {start_date}."
                 else:
@@ -470,13 +471,15 @@ with tab5:
             # Fetch stock data
             hist, error = fetch_stock_data(stock_ticker, start_date)
             if error:
-                return None, error  # Return error if there's a problem fetching the data
-            
+                st.error(error)  # Display error if there's a problem fetching the data
+                return
+        
             # Get the price at the start date
             try:
                 start_price = hist.loc[start_date]["Close"]
             except KeyError:
-                return None, f"Start date {start_date} is not available in the historical data."
+                st.error(f"Start date {start_date} is not available in the historical data.")
+                return
             
             # Get the current price (most recent close price)
             current_price = hist["Close"].iloc[-1]
@@ -491,18 +494,15 @@ with tab5:
             total_return = final_value - investment_amount
             return_percentage = (total_return / investment_amount) * 100
         
-            # Return the results
-            return {
-                "stock_ticker": stock_ticker,
-                "start_date": start_date,
-                "investment_amount": investment_amount,
-                "start_price": start_price,
-                "current_price": current_price,
-                "total_dividends": total_dividends,
-                "final_value": final_value,
-                "total_return": total_return,
-                "return_percentage": return_percentage
-            }, None
+            # Display the results directly using Streamlit components
+            st.success(f"Investment in {stock_ticker} from {start_date}")
+            st.write(f"Initial Investment: ₹{investment_amount}")
+            st.write(f"Start Price: ₹{start_price}")
+            st.write(f"Current Price: ₹{current_price}")
+            st.write(f"Total Dividends: ₹{total_dividends}")
+            st.write(f"Final Value: ₹{final_value}")
+            st.write(f"Total Return: ₹{total_return}")
+            st.write(f"Return Percentage: {return_percentage:.2f}%")
         
         # Streamlit UI components
         st.title("Stock Investment Return Calculator")
@@ -512,21 +512,11 @@ with tab5:
         start_date = st.date_input("Enter Start Date", pd.to_datetime("2010-01-01"))
         investment_amount = st.number_input("Enter Investment Amount (₹)", min_value=1, value=10000)
         
-        # Button to trigger calculation
-        if st.button("Calculate Investment Return"):
-            # Calculate investment return
-            result, error = calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
-            
-            if error:
-                # Display error if there's an issue
-                st.error(error)
-            else:
-                # Display the results if successful
-                st.success(f"Investment in {stock_ticker} from {start_date.strftime('%Y-%m-%d')}")
-                st.write(f"Initial Investment: ₹{investment_amount}")
-                st.write(f"Start Price: ₹{result['start_price']}")
-                st.write(f"Current Price: ₹{result['current_price']}")
-                st.write(f"Total Dividends: ₹{result['total_dividends']}")
-                st.write(f"Final Value: ₹{result['final_value']}")
-                st.write(f"Total Return: ₹{result['total_return']}")
-                st.write(f"Return Percentage: {result['return_percentage']:.2f}%")
+        # Ensure the start date doesn't exceed today's date
+        if start_date > datetime.today().date():
+            st.warning("Start date cannot be in the future. Using today's date instead.")
+            start_date = datetime.today().date()
+        
+        # Automatically calculate investment return when inputs are provided
+        if stock_ticker and start_date and investment_amount:
+            calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
