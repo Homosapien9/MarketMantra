@@ -106,7 +106,7 @@ with col2:
 
 with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     st.header("Asset Selection")
-    stock_symbol = st.text_input("Select Stock Ticker", value="JSWSTEEL.NS")
+    stock_symbol = st.text_input("Select asset Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
 with st.expander("Select Technical Indicators"):
@@ -153,7 +153,7 @@ else:
 with st.expander("Data Visualization"):
     # Fetch stock data
     df = get_stock_data(stock_symbol, start_date, end_date)
-    st.subheader(f"Stock Data for {stock_symbol}")
+    st.subheader(f"asset Data for {stock_symbol}")
     st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
     st.dataframe(df.tail())
     if df.empty:
@@ -211,10 +211,10 @@ X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, t
 
 # Model Setup
 models = {
-    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=15, random_state=45),
-    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=10, max_depth=15, random_state=45),
-    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=15, learning_rate=10, random_state=45),
-    "Decision Tree": DecisionTreeClassifier(random_state=45)}
+    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, random_state=50),
+    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=20, max_depth=20, random_state=50),
+    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=20, learning_rate=20, random_state=50),
+    "Decision Tree": DecisionTreeClassifier(random_state=50)}
 
 # Initialize a list to store predictions
 model_predictions = []
@@ -272,7 +272,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions"])
+tab1, tab2, tab3, tab4, tab5= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "comapare assets"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -452,3 +452,55 @@ with tab4:
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
+        
+with tab5:
+    st.title("Compare Two Assets with SMA and Daily Stats")
+    # User input for stock tickers and date
+    asset1 = st.text_input("Enter first asset:", "AAPL")
+    asset2 = st.text_input("Enter second asset:", "MSFT")
+    selected_date = st.date_input("Select a date to view High, Low, Close prices:")
+        
+    # Download historical data for both assets
+    data1 = yf.download(asset1, start="2010-01-01", end="2024-01-01")
+    data2 = yf.download(asset2, start="2010-01-01", end="2024-01-01")
+        
+    # Calculate 50-day and 200-day SMAs
+    data1['SMA_50'] = data1['Close'].rolling(window=50).mean()
+    data1['SMA_200'] = data1['Close'].rolling(window=200).mean()
+    data2['SMA_50'] = data2['Close'].rolling(window=50).mean()
+    data2['SMA_200'] = data2['Close'].rolling(window=200).mean()
+        
+    # Function to display selected date stats
+    def get_daily_stats(data, ticker, date):
+        if date in data.index:
+            high = data.loc[date, 'High']
+            low = data.loc[date, 'Low']
+            close = data.loc[date, 'Close']
+            sma_50 = data.loc[date, 'SMA_50']
+            sma_200 = data.loc[date, 'SMA_200']
+            return {
+                    "Ticker": ticker,
+                    "High": f"{high:.2f}",
+                    "Low": f"{low:.2f}",
+                    "Close": f"{close:.2f}",
+                    "SMA 50": f"{sma_50:.2f}" if not pd.isna(sma_50) else "Not available",
+                    "SMA 200": f"{sma_200:.2f}" if not pd.isna(sma_200) else "Not available",
+                }
+            else:
+                return {
+                    "Ticker": ticker,
+                    "Error": "Date not found in historical data."
+                }
+        
+        # Display the results
+        if st.button("Compare Assets"):
+            # Get stats for the selected date
+            stats1 = get_daily_stats(data1, asset1, pd.Timestamp(selected_date))
+            stats2 = get_daily_stats(data2, asset2, pd.Timestamp(selected_date))
+        
+            # Show comparison as a table
+            st.write("### Comparison of Assets")
+            st.write("#### Asset 1:")
+            st.table(stats1)
+            st.write("#### Asset 2:")
+            st.table(stats2)
