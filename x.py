@@ -265,8 +265,7 @@ selected_model = st.selectbox("Select Model for Accuracy", list(models.keys()))
 for model_name, accuracy in model_accuracies.items():
     if model_name == selected_model:
         st.write(f"{model_name}: {accuracy:.2f}%")
-# Real-time Prediction Section
-st.subheader("Real-time Prediction for the Latest Data")
+
 latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1, -1)
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
@@ -340,9 +339,9 @@ with tab3:
 
     if macd:
         st.header("MACD (Moving Average Convergence Divergence)")
-        st.write("It helps us understand if the stock price is likely to go up or down.")
-        st.write("If the **MACD line** is **higher** than the **signal line**, it means the stock price could go **up**.")
-        st.write("If the **MACD line** is **lower** than the **signal line**, it means the stock price could go **down**.")
+        st.write("It helps us understand if the asset price is likely to go up or down.")
+        st.write("If the **MACD line** is **higher** than the **signal line**, it means the asset price could go **up**.")
+        st.write("If the **MACD line** is **lower** than the **signal line**, it means the asset price could go **down**.")
         macd_line, signal_line = compute_macd(df)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(macd_line, label="MACD", color='blue')
@@ -355,9 +354,9 @@ with tab3:
 
     if stochastic:
         st.header("stochastic oscillator")
-        st.write("It helps to see if a stock is high or low compared to its recent prices.")
-        st.write("If the value is above _**80**_, it might mean the stock is _**high (and could come down)**_.")
-        st.write("If the value is below _**20**_, it might mean the stock is _**low (and could go up)**_.")
+        st.write("It helps to see if a asset is high or low compared to its recent prices.")
+        st.write("If the value is above _**80**_, it might mean the asset is _**high (and could come down)**_.")
+        st.write("If the value is below _**20**_, it might mean the asset is _**low (and could go up)**_.")
         stochastic_oscillator = compute_stochastic(df)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(stochastic_oscillator, label="Stochastic Oscillator", color='green')
@@ -371,14 +370,14 @@ with tab3:
 
     if Bollingers:
         st.subheader("Bollinger Bands")
-        st.write("Bollinger Bands show the volatility and price range of a stock.")
+        st.write("Bollinger Bands show the volatility and price range of a asset.")
         st.write("If the price hits or exceeds the **upper band**, signaling a potential **sell**.")
         st.write("If the price hits or drops below the **lower band**, signaling a potential **buy**.")
         plot_bollinger_bands(df)
 
     if RSI:
         st.subheader("Relative Strength Index (RSI)")
-        st.write("RSI shows if a stock is overbought or oversold.")
+        st.write("RSI shows if a asset is overbought or oversold.")
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         plot_rsi(df)
@@ -443,10 +442,10 @@ with tab4:
 
         # Display predictions
         if avg_prob_up > avg_prob_down:
-            st.write(":green[The stock is likely to rise tomorrow.]")
+            st.write(":green[The asset is likely to rise tomorrow.]")
             st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
         else:
-            st.write(":red[The stock is likely to fall tomorrow.]")
+            st.write(":red[The asset is likely to fall tomorrow.]")
             st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
 
     except Exception as e:
@@ -459,7 +458,7 @@ with tab5:
                 # Fetch data from start_date till today
                 hist = stock_data.history(start=start_date, end=datetime.today().strftime('%Y-%m-%d'))
                 if hist.empty:
-                    return None, f"No data available for the stock '{stock_ticker}' from {start_date}."
+                    return None, f"No data available for the asset '{stock_ticker}' from {start_date}."
                 else:
                     return hist, None
             except Exception as e:
@@ -495,19 +494,19 @@ with tab5:
         
             # Display the results directly using Streamlit components
             st.subheader(f"Investment in {stock_ticker} from {start_date}")
-            st.write(f"Initial Investment: ₹{investment_amount:,.2f}")
-            st.write(f"Start Price: ₹{start_price:,.2f}")
-            st.write(f"Current Price: ₹{current_price:,.2f}")
+            st.write(f"Initial Investment: {investment_amount:,.2f}")
+            st.write(f"Start Price: {start_price:,.2f}")
+            st.write(f"Current Price: {current_price:,.2f}")
             
             # Dividend Details
             if total_dividends > 0:
-                st.write(f"Total Dividends Earned: ₹{total_dividends:,.2f}")
+                st.write(f"Total Dividends Earned: {total_dividends:,.2f}")
             else:
                 st.write("This stock does not offer dividends or no dividends were paid during the selected period.")
             
             # Final Value and Return Calculation
-            st.write(f"Final Value (including price change and dividends): ₹{final_value:,.2f}")
-            st.write(f"Total Return: ₹{total_return:,.2f}")
+            st.write(f"Final Value (including price change and dividends): {final_value:,.2f}")
+            st.write(f"Total Return: {total_return:,.2f}")
             st.write(f"Return Percentage: {return_percentage:,.2f}%")
         
         # Streamlit UI components
