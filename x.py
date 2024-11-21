@@ -1,3 +1,4 @@
+import requests
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -268,7 +269,7 @@ latest_data = df.iloc[-1:][['Previous Close', 'Daily Return']].values.reshape(1,
 latest_data_scaled = scaler.transform(latest_data)
 predicted_trend = models[selected_model].predict(latest_data_scaled)
 
-tab1, tab2, tab3, tab4 ,tab5= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "calculate ROI"])
+tab1, tab2, tab3, tab4 , tab5, tab6= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "calculate ROI","Investment Chatbot"])
 
 # Initialize portfolio and watchlist in session_state if they do not exist
 if 'portfolio' not in st.session_state:
@@ -523,3 +524,89 @@ with tab5:
         # Automatically calculate investment return when inputs are provided
         if stock_ticker and start_date and investment_amount:
             calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
+with tab6:
+    def get_stock_price(stock_symbol):
+        try:
+            url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={stock_symbol}"
+            response = requests.get(url)
+            response.raise_for_status()  # Raises an HTTPError for bad responses (4xx, 5xx)
+            
+            data = response.json()
+            # Check if the stock data is available
+            if 'quoteResponse' in data and 'result' in data['quoteResponse'] and len(data['quoteResponse']['result']) > 0:
+                stock_data = data['quoteResponse']['result'][0]
+                price = stock_data['regularMarketPrice']
+                return price
+            else:
+                return None
+        except requests.exceptions.RequestException as e:
+            return f"Error fetching stock data: {str(e)}"
+        except ValueError:
+            return "Error parsing the response from the server."
+    
+    # Function to respond to investment-related queries
+    def get_investment_info(query):
+        query = query.lower()
+    
+        # Handle stock price comparison
+        if 'compare' in query or 'which is better' in query or 'compare price' in query:
+            # Extract stock symbols from the query
+            stock_symbols = [stock.strip() for stock in query.split('compare')[1].split('and')]
+            stock_prices = {}
+            
+            for symbol in stock_symbols:
+                price = get_stock_price(symbol.upper())
+                if price is not None:
+                    stock_prices[symbol.upper()] = price
+                else:
+                    stock_prices[symbol.upper()] = "Not found or invalid symbol"
+            
+            return stock_prices
+        investment_terms = {
+            "what is bond": "A bond is when you lend money to someone, like the government or a company, and they pay you back with interest after a while.",
+            "what is stock market": "The stock market is where people buy and sell pieces of companies, called stocks.",
+            "what is mutual fund": "A mutual fund is a pool of money collected from many investors, managed by professionals to invest in different assets like stocks and bonds.",
+            "what is roi": "ROI means Return on Investment. It's a way to measure how much profit you made relative to the cost of your investment.",
+            "what is diversification": "Diversification means spreading your investments across different areas to reduce risk. Don't put all your eggs in one basket.",
+            "what is portfolio management": "Portfolio management is the art of choosing and managing the best mix of investments to achieve your financial goals.",
+            "what is etf": "An ETF, or exchange-traded fund, is like a mutual fund, but it trades on the stock exchange like a regular stock.",
+            "what is cryptocurrency": "Cryptocurrency is a type of digital or virtual currency that uses encryption techniques to regulate the generation of units and verify the transfer of funds.",
+            "what is bitcoin": "Bitcoin is the first and most popular cryptocurrency. It's decentralized and uses blockchain technology for secure transactions.",
+            "what is inflation": "Inflation is the rate at which the general level of prices for goods and services rises, and subsequently, the purchasing power of currency falls.",
+            "what is interest rate": "An interest rate is the cost of borrowing money, typically expressed as a percentage of the principal loan amount, paid periodically.",
+            "what is asset": "An asset is something of value or a resource that can provide future economic benefits, like property, stocks, or bonds.",
+            "what is hedge fund": "A hedge fund is a pooled investment fund that uses a range of strategies to earn high returns for its investors, often with high risk.",
+            "what is ipo": "An IPO, or Initial Public Offering, is when a company offers its shares to the public for the first time, usually to raise capital.",
+            "what is commodity": "A commodity is a basic good used in commerce that is interchangeable with other goods of the same type, like gold, oil, or wheat.",
+            "what is real estate investment": "Real estate investment involves buying, owning, managing, and/or renting property for profit. It can generate regular income or long-term gains.",
+            "what is savings account": "A savings account is a bank account that earns interest on your deposits, typically used for short-term or emergency savings.",
+            "what is 401k": "A 401(k) is a retirement savings plan offered by employers that allows workers to save and invest a portion of their paycheck before taxes.",
+            "what is dividend": "A dividend is a payment made by a corporation to its shareholders, usually out of profits, in the form of cash or additional shares.",
+            "what is stock split": "A stock split occurs when a company issues additional shares to shareholders, increasing the total supply while keeping the overall value the same.",
+            "what is bear market": "A bear market is a period when the prices of securities are falling or are expected to fall, typically by 20% or more from recent highs.",
+            "what is bull market": "A bull market is when the prices of securities are rising or are expected to rise, often driven by investor confidence and economic growth.",
+            "what is private equity": "Private equity is capital invested in companies that are not listed on a public exchange. It's often used for startup financing or buyouts.",
+            "what is credit rating": "A credit rating is an evaluation of the creditworthiness of a borrower, based on their financial history and ability to repay debt.",
+            "what is stock exchange": "A stock exchange is a marketplace where stocks, bonds, and other securities are bought and sold. The New York Stock Exchange (NYSE) is one example.",
+            "what is capital gains": "Capital gains are the profits made from the sale of an asset or investment, such as stocks or property, for more than its purchase price.",
+            "what is market capitalization": "Market capitalization (market cap) is the total market value of a company's outstanding shares, calculated by multiplying the stock price by the number of shares.",
+            "what is venture capital": "Venture capital is financing provided to early-stage, high-growth companies that have the potential to grow rapidly and generate high returns.",
+            "what is leveraged buyout": "A leveraged buyout (LBO) is a financial transaction where a company is purchased using a combination of equity and borrowed money.",
+            "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500."}
+    
+        for term in investment_terms:
+            if term in query:
+                return investment_terms[term]
+        return "Please ask a question about investment, savings, or finance stuff."
+    st.title("Investment Chatbot")
+    user_query = st.text_input("Ask a question about investments, stocks, or finance:")
+    
+    if user_query:
+        response = get_investment_info(user_query)
+        if isinstance(response, dict):
+            # Display stock comparison
+            st.write("Stock Price Comparison:")
+            for symbol, price in response.items():
+                st.write(f"{symbol}: {price}")
+        else:
+            st.write(response)
