@@ -495,19 +495,18 @@ with tab5:
         
             # Display the results directly using Streamlit components
             st.subheader(f"Investment in {stock_ticker} from {start_date}")
-            st.write(f"Initial Investment: ₹{investment_amount}")
-            st.write(f"Start Price: ₹{start_price:.2f}")
-            st.write(f"Current Price: ₹{current_price}")
+            st.write(f"Initial Investment: ₹{investment_amount:,.2f}")
+            st.write(f"Start Price: ₹{start_price:,.2f}")
+            st.write(f"Current Price: ₹{current_price:,.2f}")
             
             # Dividend Details
             if total_dividends > 0:
                 st.write(f"Total Dividends Earned: ₹{total_dividends:,.2f}")
-                st.write(f"Your investment would have earned ₹{total_dividends:.2f} in dividends over the selected period.")
             else:
                 st.write("This stock does not offer dividends or no dividends were paid during the selected period.")
             
             # Final Value and Return Calculation
-            st.write(f"Final Value (including price change and dividends): ₹{final_value:.2f}")
+            st.write(f"Final Value (including price change and dividends): ₹{final_value:,.2f}")
             st.write(f"Total Return: ₹{total_return:,.2f}")
             st.write(f"Return Percentage: {return_percentage:,.2f}%")
         
