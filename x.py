@@ -508,8 +508,8 @@ with tab5:
             
             # Final Value and Return Calculation
             st.write(f"Final Value (including price change and dividends): ₹{final_value:.2f}")
-            st.write(f"Total Return: ₹{total_return:.2f}")
-            st.write(f"Return Percentage: {return_percentage:.2f}%")
+            st.write(f"Total Return: ₹{total_return:,.2f}")
+            st.write(f"Return Percentage: {return_percentage:,.2f}%")
         
         # Streamlit UI components
         st.title("Asset Investment Return Calculator")
