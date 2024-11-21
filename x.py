@@ -103,6 +103,7 @@ with col2:
 with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     st.header("Asset Selection")
     stock_symbol = st.text_input("Select asset Ticker", value="JSWSTEEL.NS")
+    stock_symbol = stock_symbol.upper()
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
 with st.expander("Select Technical Indicators"):
