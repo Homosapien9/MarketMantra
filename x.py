@@ -4,7 +4,7 @@ import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
-from datetime import datetime, timedelta
+from datetime import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from sklearn.tree import DecisionTreeClassifier
@@ -107,8 +107,7 @@ with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     st.header("Asset Selection")
     stock_symbol = st.text_input("Select asset Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
-    five_days_ago = datetime.now().date() - timedelta(days=5)
-    end_date = st.date_input("End Date", value=datetime.now().date(), max_value=five_days_ago)
+    end_date = st.date_input("End Date", datetime.now().date()
 with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
     indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index","Volume Chart"]
