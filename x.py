@@ -38,7 +38,6 @@ def compute_stochastic(df, window=14):
 
  # Bollinger Bands
 def compute_rsi(df, window=14):
-    """Compute the Relative Strength Index (RSI)."""
     delta = df['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
@@ -48,7 +47,6 @@ def compute_rsi(df, window=14):
 
 # Function to plot the RSI graph
 def plot_rsi(df, window=14):
-    """Plot the Relative Strength Index (RSI) graph."""
     df['RSI'] = compute_rsi(df, window)
     
     # Plot the RSI graph
@@ -63,7 +61,6 @@ def plot_rsi(df, window=14):
     st.pyplot(fig)
 
 def compute_bollinger_bands(df, window=20):
-    """Compute Bollinger Bands."""
     df['Middle_BB'] = df['Close'].rolling(window=window).mean()  # Middle Band (SMA)
     df['Std_Dev'] = df['Close'].rolling(window=window).std()  # Standard deviation
     df['Upper_BB'] = df['Middle_BB'] + (df['Std_Dev'] * 2)  # Upper Band
