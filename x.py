@@ -4,7 +4,7 @@ import xgboost as xgb
 import yfinance as yf
 from PIL import Image
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from sklearn.tree import DecisionTreeClassifier
@@ -72,7 +72,6 @@ def compute_bollinger_bands(df, window=20):
 
 # Function to plot the Bollinger Bands graph
 def plot_bollinger_bands(df, window=20):
-    """Plot Bollinger Bands."""
     df = compute_bollinger_bands(df, window)
     
     # Plot the Bollinger Bands graph
@@ -94,7 +93,7 @@ def compute_volumetric_data(df):
     return df
         
 qr_image = Image.open("Website QR.png")
-col1, col2 = st.columns([4, 1])
+col1, col2 = st.columns([3, 1])
 
 # Title in Column 1
 with col1:
@@ -108,7 +107,8 @@ with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
     st.header("Asset Selection")
     stock_symbol = st.text_input("Select asset Ticker", value="JSWSTEEL.NS")
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
-    end_date = st.date_input("End Date", datetime.now().date())
+    five_days_ago = datetime.now().date() - timedelta(days=5)
+    end_date = st.date_input("End Date", value=datetime.now().date(), max_value=five_days_ago)
 with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
     indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index","Volume Chart"]
@@ -154,10 +154,10 @@ with st.expander("Data Visualization"):
     # Fetch stock data
     df = get_stock_data(stock_symbol, start_date, end_date)
     st.subheader(f"asset Data for {stock_symbol}")
-    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency and market context.")
+    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
     st.dataframe(df.tail())
     if df.empty:
-        st.warning("No data found for the selected asset or date range.")
+        st.warning("No data found for the selected asset or date range. Model needs atleast 5 days to predict results")
         st.stop()
         
     st.subheader("Closing Price Over Time")
