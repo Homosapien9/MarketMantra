@@ -14,8 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-# Define a helper function for stock data
-def get_stock_data(stock_symbol, start_date, end_date):
+def get_stock_data(stock_symbol, start_date, end_date):# Define a helper function for stock data
     try:
         df = yf.download(stock_symbol, start=start_date, end=end_date)
         df.drop(columns=['Adj Close'], inplace=True)
@@ -24,21 +23,18 @@ def get_stock_data(stock_symbol, start_date, end_date):
         st.error(f"Error fetching stock data: {e}")
         return pd.DataFrame()
 
-# Helper function to calculate MACD
-def compute_macd(df, fast=12, slow=26, signal=9):
+def compute_macd(df, fast=12, slow=26, signal=9):# Helper function to calculate MACD
     macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
     signal_line = macd_line.ewm(span=signal, adjust=False).mean()
     return macd_line, signal_line
 
-# Helper function to calculate Stochastic Oscillator
-def compute_stochastic(df, window=14):
+def compute_stochastic(df, window=14):# Helper function to calculate Stochastic Oscillator
     low_min = df['Low'].rolling(window=window).min()
     high_max = df['High'].rolling(window=window).max()
     stochastic = 100 * (df['Close'] - low_min) / (high_max - low_min)
     return stochastic
 
- # Bollinger Bands
-def compute_rsi(df, window=14):
+def compute_rsi(df, window=14): # Bollinger Bands
     delta = df['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
@@ -46,12 +42,9 @@ def compute_rsi(df, window=14):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
-# Function to plot the RSI graph
-def plot_rsi(df, window=14):
+def plot_rsi(df, window=14):# Function to plot the RSI graph
     df['RSI'] = compute_rsi(df, window)
-    
-    # Plot the RSI graph
-    fig, ax = plt.subplots(figsize=(15, 5))
+    fig, ax = plt.subplots(figsize=(15, 5))  # Plot the RSI graph
     ax.plot(df.index, df['RSI'], label="RSI", color="blue")
     ax.axhline(70, color='red', linestyle='--', label="Overbought (70)")
     ax.axhline(30, color='green', linestyle='--', label="Oversold (30)")
@@ -67,12 +60,9 @@ def compute_bollinger_bands(df, window=20):
     df['Upper_BB'] = df['Middle_BB'] + (df['Std_Dev'] * 2)  # Upper Band
     df['Lower_BB'] = df['Middle_BB'] - (df['Std_Dev'] * 2)  # Lower Band
     return df
-
-# Function to plot the Bollinger Bands graph
-def plot_bollinger_bands(df, window=20):
-    df = compute_bollinger_bands(df, window)
     
-    # Plot the Bollinger Bands graph
+def plot_bollinger_bands(df, window=20):# Function to plot the Bollinger Bands graph
+    df = compute_bollinger_bands(df, window)   # Plot the Bollinger Bands graph
     fig, ax = plt.subplots(figsize=(15, 5))
     ax.plot(df.index, df['Close'], label='Close Price', color='blue')
     ax.plot(df.index, df['Upper_BB'], label='Upper Bollinger Band', color='red', linestyle='--')
@@ -92,12 +82,9 @@ def compute_volumetric_data(df):
         
 qr_image = Image.open("Website qr.png")
 col1, col2 = st.columns([3, 1])
-
-# Title in Column 1
 with col1:
     st.markdown('<h1 style="color: white; font-size: 29.7px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
     st.subheader("~ Developed By Jatan Shah")
-# QR Code in Column 2
 with col2:
     st.image(qr_image, caption="scan for webite", width=100)
 
@@ -147,10 +134,8 @@ if "Volume Chart" in selected_indicators:
 else:
     volume = False
 
-# Data Visualization: Closing Price
-with st.expander("Data Visualization"):
-    # Fetch stock data
-    df = get_stock_data(stock_symbol, start_date, end_date)
+with st.expander("Data Visualization"):# Data Visualization: Closing Price
+    df = get_stock_data(stock_symbol, start_date, end_date)    # Fetch stock data
     st.subheader(f"asset Data for {stock_symbol}")
     st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
     st.dataframe(df.tail())
@@ -169,74 +154,56 @@ with st.expander("Data Visualization"):
     st.pyplot(fig)
 
 st.header("Portfolio & Watchlist")
-
 col1, col2, col3, col4,= st.columns(4)
 with col1:
     portfolio_add = st.button("Add to Portfolio")
 with col2:
     watchlist_add = st.button("Add to Watchlist")
 
-# Add stock to portfolio
-if portfolio_add:
+if portfolio_add:# Add stock to portfolio
     if stock_symbol not in st.session_state['portfolio']:
         st.session_state['portfolio'].append(stock_symbol)
         st.success(f"{stock_symbol} added to Portfolio.")
     else:
         st.warning(f"{stock_symbol} is already in your Portfolio.")
 
-# Add stock to watchlist
-if watchlist_add:
+if watchlist_add:# Add stock to watchlist
     if stock_symbol not in st.session_state['watchlist']:
         st.session_state['watchlist'].append(stock_symbol)
         st.success(f"{stock_symbol} added to Watchlist.")
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
-# Feature Engineering and Model Preparation
-df['Previous Close'] = df['Close'].shift(1)
+
+df['Previous Close'] = df['Close'].shift(1)# Feature Engineering and Model Preparation
 df['Daily Return'] = df['Close'].pct_change()
 df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
 df.dropna(inplace=True)
-
-# Prepare features and target
-features = df[['Previous Close', 'Daily Return']].values
+features = df[['Previous Close', 'Daily Return']].values# Prepare features and target
 target = df['Target'].values
 
-# Scaling features
-scaler = StandardScaler()
+scaler = StandardScaler()# Scaling features
 features_scaled = scaler.fit_transform(features)
-# Split data
-X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)
+X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)# Split data
 
-# Model Setup
-models = {
-    "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, random_state=50),
-    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=20, max_depth=20, random_state=50),
-    "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=20, learning_rate=20, random_state=50),
-    "Decision Tree": DecisionTreeClassifier(random_state=50)}
+models = {"Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, random_state=50),
+          "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=20, max_depth=20, random_state=50),
+          "XGBoost": xgb.XGBClassifier(n_estimators=100, max_depth=20, learning_rate=20, random_state=50),
+          "Decision Tree": DecisionTreeClassifier(random_state=50)}# Model Setup
+model_predictions = []# Initialize a list to store predictions
 
-# Initialize a list to store predictions
-model_predictions = []
-
-# Train models and store predictions
-for model_name, model in models.items():
+for model_name, model in models.items():# Train models and store predictions
     model.fit(X_train, Y_train)  # Train the model
     model_pred = model.predict(X_valid)  # Get predictions
     model_predictions.append(model_pred)  # Store predictions
 
-# Convert list of predictions into a numpy array (shape: [n_models, n_samples])
-model_predictions = np.array(model_predictions)
+model_predictions = np.array(model_predictions)# Convert list of predictions into a numpy array (shape: [n_models, n_samples])
 
-# Compute the average prediction (0 = Down, 1 = Up)
-average_predictions = np.mean(model_predictions, axis=0)
+average_predictions = np.mean(model_predictions, axis=0)# Compute the average prediction (0 = Down, 1 = Up)
 
-# Round to get final prediction (0 or 1)
-final_predictions = np.round(average_predictions)
+final_predictions = np.round(average_predictions)# Round to get final prediction (0 or 1)
 
-# Calculate confusion matrix based on the averaged predictions
-cm = confusion_matrix(Y_valid, final_predictions)
-
-# Display confusion matrix
-st.subheader("Confusion Matrix (Averaged Model Predictions)")
+cm = confusion_matrix(Y_valid, final_predictions)# Calculate confusion matrix based on the averaged predictions
+st.subheader("Confusion Matrix (Averaged Model Predictions)")# Display confusion matrix
 fig, ax = plt.subplots(figsize=(6, 6))
 cax = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
 fig.colorbar(cax)
@@ -251,16 +218,14 @@ for i in range(cm.shape[0]):
         ax.text(j, i, format(cm[i, j], 'd'), ha="center", va="center", color="black")
 st.pyplot(fig)
 
-# display individual model accuracy
-model_accuracies = {}
+model_accuracies = {}# display individual model accuracy
 for model_name, model in models.items():
     model.fit(X_train, Y_train)
     y_pred = model.predict(X_valid)
     accuracy = accuracy_score(Y_valid, y_pred) * 100
     model_accuracies[model_name] = accuracy
 
-# Select model to display accuracy
-selected_model = st.selectbox("Select Model for Accuracy", list(models.keys()))
+selected_model = st.selectbox("Select Model for Accuracy", list(models.keys()))# Select model to display accuracy
 for model_name, accuracy in model_accuracies.items():
     if model_name == selected_model:
         st.write(f"{model_name}: {accuracy:.2f}%")
@@ -271,46 +236,33 @@ predicted_trend = models[selected_model].predict(latest_data_scaled)
 
 tab1, tab2, tab3, tab4 , tab5, tab6= st.tabs(["Portfolio", "Watchlist", "Technical indicators", "Predictions", "calculate ROI","Investment Chatbot"])
 
-# Initialize portfolio and watchlist in session_state if they do not exist
-if 'portfolio' not in st.session_state:
+if 'portfolio' not in st.session_state:# Initialize portfolio and watchlist in session_state if they do not exist
     st.session_state['portfolio'] = []
-
 if 'watchlist' not in st.session_state:
     st.session_state['watchlist'] = []
 
-# Portfolio Tab
-with tab1:
+with tab1:# Portfolio Tab
     st.subheader("Manage Your Portfolio")
-
-    # Display all stocks in the portfolio
-    if st.session_state['portfolio']:
+    if st.session_state['portfolio']:# Display all stocks in the portfolio
         for stock in st.session_state['portfolio']:
             st.write(f"- {stock}")
-
-            # Button to remove stock from portfolio
-            if st.button(f"Remove {stock} from Portfolio"):
+            if st.button(f"Remove {stock} from Portfolio"):# Button to remove stock from portfolio
                 st.session_state['portfolio'].remove(stock)
                 st.success(f"Removed {stock} from Portfolio!")
     else:
         st.write("No assets in your portfolio yet.")
         
-# Watchlist Tab
-with tab2:
+with tab2:# Watchlist Tab
     st.subheader("Manage Your Watchlist")
-
-    # Display all stocks in the watchlist
-    if st.session_state['watchlist']:
+    if st.session_state['watchlist']:# Display all stocks in the watchlist
         for stock in st.session_state['watchlist']:
             st.write(f"- {stock}")
-
-            # Button to remove stock from watchlist
-            if st.button(f"Remove {stock} from Watchlist"):
-                st.session_state['watchlist'].remove(stock)
-                st.success(f"Removed {stock} from Watchlist!")
+            if st.button(f"Remove {stock} from Watchlist"):# Button to remove stock from watchlist
+               st.session_state['watchlist'].remove(stock)
+               st.success(f"Removed {stock} from Watchlist!")
     else:
         st.write("No assets in your watchlist yet.")
 
-# Technical Indicators
 with tab3:
     if sma_50:
         st.header("Simple Moving Average (SMA) of 50 Days")
@@ -394,53 +346,36 @@ with tab3:
             st.write("Volume chart tracks the number of shares/contracts traded.")
             st.write("High volume: Confirms price trends (up or down).")
             st.write("Low volume: Signals lack of interest or indecision.")
-            # Compute volumetric data
-            df = compute_volumetric_data(df)
-
-            # Create the plot
-            fig, ax = plt.subplots(figsize=(15, 7))
-
-            # Plot buying pressure
-            ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')
-            # Plot selling pressure
-            ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')
-
-            # Add chart title and labels
-            ax.set_title('Volumetric Chart: Buying vs Selling Pressure', fontsize=15)
+            df = compute_volumetric_data(df)# Compute volumetric data
+            fig, ax = plt.subplots(figsize=(15, 7))# Create the plot
+            ax.bar(df.index, df['Buy_Volume'], color='green', alpha=0.6, label='Buying Pressure')# Plot buying pressure
+            ax.bar(df.index, df['Sell_Volume'], color='red', alpha=0.6, label='Selling Pressure')# Plot selling pressure
+            ax.set_title('Volumetric Chart: Buying vs Selling Pressure', fontsize=15)# Add chart title and labels
             ax.set_xlabel('Date')
             ax.set_ylabel('Volume')
             ax.legend(loc='upper left')
-
-            # Display the plot in Streamlit
             st.pyplot(fig)
         plot_volumetric_chart(df)
         
 with tab4:
     st.subheader("Predictions for Tomorrow's Trading")
-
     try:
-        # Calculate probabilities for tomorrow's prediction
         all_model_predictions = [model.predict_proba(latest_data_scaled) for model in models.values()]
 
-        # Check dimensions of each prediction
-        for idx, prediction in enumerate(all_model_predictions):
+        for idx, prediction in enumerate(all_model_predictions):# Check dimensions of each prediction
             if len(prediction.shape) == 1 or prediction.shape[1] != 2:
                 st.error(f"Model {list(models.keys())[idx]} returned unexpected shape: {prediction.shape}")
                 st.stop()
 
-        # Average probabilities across models
-        avg_probabilities = np.mean(all_model_predictions, axis=0)
-
-        # Ensure avg_probabilities shape is valid
-        if avg_probabilities.shape[0] != 1:
+        avg_probabilities = np.mean(all_model_predictions, axis=0)   # Average probabilities across models
+        if avg_probabilities.shape[0] != 1:# Ensure avg_probabilities shape is valid
             st.error(f"Unexpected shape of avg_probabilities: {avg_probabilities.shape}")
             st.stop()
 
         avg_prob_up = avg_probabilities[0, 1]
         avg_prob_down = avg_probabilities[0, 0]
 
-        # Display predictions
-        if avg_prob_up > avg_prob_down:
+        if avg_prob_up > avg_prob_down:# Display predictions
             st.write(":green[The asset is likely to rise tomorrow.]")
             st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
         else:
@@ -454,7 +389,6 @@ with tab5:
         def fetch_stock_data(stock_ticker, start_date):
             stock_data = yf.Ticker(stock_ticker)
             try:
-                # Fetch data from start_date till today
                 hist = stock_data.history(start=start_date, end=datetime.today().strftime('%Y-%m-%d'))
                 if hist.empty:
                     return None, f"No data available for the asset '{stock_ticker}' from {start_date}."
@@ -463,97 +397,88 @@ with tab5:
             except Exception as e:
                 return None, f"Failed to fetch data for '{stock_ticker}': {str(e)}"
         
-        # Function to calculate investment return
         def calculate_investment_return(start_date, stock_ticker, investment_amount):
-            # Fetch stock data
             hist, error = fetch_stock_data(stock_ticker, start_date)
             if error:
                 st.error(error)  # Display error if there's a problem fetching the data
                 return
-        
-            # Get the price at the start date
+                
             try:
                 start_price = hist.loc[start_date]["Close"]
             except KeyError:
                 st.error(f"Start date {start_date} is not available in the historical data.")
                 return
             
-            # Get the current price (most recent close price)
-            current_price = hist["Close"].iloc[-1]
-            
-            # Calculate total dividends (if available)
+            current_price = hist["Close"].iloc[-1] # Get the current price (most recent close price)
             total_dividends = hist["Dividends"].sum()
-        
-            # Final value considering price change and dividends
             final_value = (investment_amount / start_price) * current_price + total_dividends
-        
-            # Calculate total return and return percentage
             total_return = final_value - investment_amount
             return_percentage = (total_return / investment_amount) * 100
         
-            # Display the results directly using Streamlit components
-            st.subheader(f"Investment in {stock_ticker} from {start_date}")
+            st.subheader(f"Investment in {stock_ticker} from {start_date}") # Display the results directly using Streamlit components
             st.write(f"Initial Investment: {investment_amount:,.2f}")
             st.write(f"Start Price: {start_price:,.2f}")
             st.write(f"Current Price: {current_price:,.2f}")
-            
-            # Dividend Details
-            if total_dividends > 0:
+         
+            if total_dividends > 0:   # Dividend Details
                 st.write(f"Total Dividends Earned: {total_dividends:,.2f}")
             else:
                 st.write("This stock does not offer dividends or no dividends were paid during the selected period.")
             
-            # Final Value and Return Calculation
-            st.write(f"Final Value (including price change and dividends): {final_value:,.2f}")
+            st.write(f"Final Value (including price change and dividends): {final_value:,.2f}")# Final Value and Return Calculation
             st.write(f"Total Return: {total_return:,.2f}")
             st.write(f"Return Percentage: {return_percentage:,.2f}%")
         
-        # Streamlit UI components
         st.title("Asset Investment Return Calculator")
-        
-        # User inputs
-        stock_ticker = stock_symbol
+        stock_ticker = stock_symbol# User inputs
         start_date = st.date_input("Enter Start Date", pd.to_datetime("2016-01-01"))
         investment_amount = st.number_input("Enter Investment Amount", min_value=1, value=1000000)
-        
-        # Ensure the start date doesn't exceed today's date
-        if start_date > datetime.today().date():
+    
+        if start_date > datetime.today().date():# Ensure the start date doesn't exceed today's date
             st.warning("Start date cannot be in the future. Using today's date instead.")
             start_date = datetime.today().date()
         
-        # Automatically calculate investment return when inputs are provided
-        if stock_ticker and start_date and investment_amount:
+        if stock_ticker and start_date and investment_amount:# Automatically calculate investment return when inputs are provided
             calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
 with tab6:
-    def get_stock_price(stock_symbol):
-        try:
-            url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={stock_symbol}"
-            response = requests.get(url)
-            response.raise_for_status()  # Raises an HTTPError for bad responses (4xx, 5xx)
-            
-            data = response.json()
-            # Check if the stock data is available
-            if 'quoteResponse' in data and 'result' in data['quoteResponse'] and len(data['quoteResponse']['result']) > 0:
-                stock_data = data['quoteResponse']['result'][0]
-                price = stock_data['regularMarketPrice']
-                return price
-            else:
-                return None
-        except requests.exceptions.RequestException as e:
-            return f"Error fetching stock data: {str(e)}"
-        except ValueError:
-            return "Error parsing the response from the server."
-    
-    # Function to respond to investment-related queries
-    def get_investment_info(query):
-        query = query.lower()
-    
-        # Handle stock price comparison
-        if 'compare' in query or 'which is better' in query or 'compare price' in query:
-            # Extract stock symbols from the query
-            stock_symbols = [stock.strip() for stock in query.split('compare')[1].split('and')]
+def get_stock_price(stock_symbol):# Function to fetch stock price from Yahoo Finance
+    try:
+        url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={stock_symbol}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise HTTP error for bad responses (4xx, 5xx)
+        
+        data = response.json()
+        
+        # Check if the stock data is available
+        if 'quoteResponse' in data and 'result' in data['quoteResponse'] and len(data['quoteResponse']['result']) > 0:
+            stock_data = data['quoteResponse']['result'][0]
+            price = stock_data['regularMarketPrice']
+            return price
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        return f"Error fetching stock data: {str(e)}"
+    except ValueError:
+        return "Error parsing the response from the server."
+
+def get_investment_info(query):
+    query = query.lower()
+    if 'price' in query or 'what is the price' in query:# Extract stock symbol (e.g., JSWSTEEL.NS)
+        words = query.split()
+        for word in words:
+            if '.' in word:  # Looks like a valid stock symbol
+                price = get_stock_price(word.upper())
+                if price is not None:
+                    return f"The current price of {word.upper()} is {price} USD."
+                else:
+                    return f"Sorry, I couldn't find the stock price for {word.upper()}. Please check the symbol."
+
+    elif 'compare' in query or 'which is better' in query or 'compare price' in query:# Extract stock symbols from the query after "compare"
+        if 'compare' in query:
+            query_part = query.split("compare")[1]  # Get part after "compare"
+            stock_symbols = [symbol.strip() for symbol in query_part.split("and")]  # Split by 'and'
+
             stock_prices = {}
-            
             for symbol in stock_symbols:
                 price = get_stock_price(symbol.upper())
                 if price is not None:
@@ -561,52 +486,51 @@ with tab6:
                 else:
                     stock_prices[symbol.upper()] = "Not found or invalid symbol"
             
-            return stock_prices
-        investment_terms = {
-            "what is bond": "A bond is when you lend money to someone, like the government or a company, and they pay you back with interest after a while.",
-            "what is stock market": "The stock market is where people buy and sell pieces of companies, called stocks.",
-            "what is mutual fund": "A mutual fund is a pool of money collected from many investors, managed by professionals to invest in different assets like stocks and bonds.",
-            "what is roi": "ROI means Return on Investment. It's a way to measure how much profit you made relative to the cost of your investment.",
-            "what is diversification": "Diversification means spreading your investments across different areas to reduce risk. Don't put all your eggs in one basket.",
-            "what is portfolio management": "Portfolio management is the art of choosing and managing the best mix of investments to achieve your financial goals.",
-            "what is etf": "An ETF, or exchange-traded fund, is like a mutual fund, but it trades on the stock exchange like a regular stock.",
-            "what is cryptocurrency": "Cryptocurrency is a type of digital or virtual currency that uses encryption techniques to regulate the generation of units and verify the transfer of funds.",
-            "what is bitcoin": "Bitcoin is the first and most popular cryptocurrency. It's decentralized and uses blockchain technology for secure transactions.",
-            "what is inflation": "Inflation is the rate at which the general level of prices for goods and services rises, and subsequently, the purchasing power of currency falls.",
-            "what is interest rate": "An interest rate is the cost of borrowing money, typically expressed as a percentage of the principal loan amount, paid periodically.",
-            "what is asset": "An asset is something of value or a resource that can provide future economic benefits, like property, stocks, or bonds.",
-            "what is hedge fund": "A hedge fund is a pooled investment fund that uses a range of strategies to earn high returns for its investors, often with high risk.",
-            "what is ipo": "An IPO, or Initial Public Offering, is when a company offers its shares to the public for the first time, usually to raise capital.",
-            "what is commodity": "A commodity is a basic good used in commerce that is interchangeable with other goods of the same type, like gold, oil, or wheat.",
-            "what is real estate investment": "Real estate investment involves buying, owning, managing, and/or renting property for profit. It can generate regular income or long-term gains.",
-            "what is savings account": "A savings account is a bank account that earns interest on your deposits, typically used for short-term or emergency savings.",
-            "what is 401k": "A 401(k) is a retirement savings plan offered by employers that allows workers to save and invest a portion of their paycheck before taxes.",
-            "what is dividend": "A dividend is a payment made by a corporation to its shareholders, usually out of profits, in the form of cash or additional shares.",
-            "what is stock split": "A stock split occurs when a company issues additional shares to shareholders, increasing the total supply while keeping the overall value the same.",
-            "what is bear market": "A bear market is a period when the prices of securities are falling or are expected to fall, typically by 20% or more from recent highs.",
-            "what is bull market": "A bull market is when the prices of securities are rising or are expected to rise, often driven by investor confidence and economic growth.",
-            "what is private equity": "Private equity is capital invested in companies that are not listed on a public exchange. It's often used for startup financing or buyouts.",
-            "what is credit rating": "A credit rating is an evaluation of the creditworthiness of a borrower, based on their financial history and ability to repay debt.",
-            "what is stock exchange": "A stock exchange is a marketplace where stocks, bonds, and other securities are bought and sold. The New York Stock Exchange (NYSE) is one example.",
-            "what is capital gains": "Capital gains are the profits made from the sale of an asset or investment, such as stocks or property, for more than its purchase price.",
-            "what is market capitalization": "Market capitalization (market cap) is the total market value of a company's outstanding shares, calculated by multiplying the stock price by the number of shares.",
-            "what is venture capital": "Venture capital is financing provided to early-stage, high-growth companies that have the potential to grow rapidly and generate high returns.",
-            "what is leveraged buyout": "A leveraged buyout (LBO) is a financial transaction where a company is purchased using a combination of equity and borrowed money.",
-            "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500."}
-    
-        for term in investment_terms:
-            if term in query:
-                return investment_terms[term]
-        return "Please ask a question about investment, savings, or finance stuff."
-    st.title("Investment Chatbot")
-    user_query = st.text_input("Ask a question about investments, stocks, or finance:")
-    
-    if user_query:
-        response = get_investment_info(user_query)
-        if isinstance(response, dict):
-            # Display stock comparison
-            st.write("Stock Price Comparison:")
-            for symbol, price in response.items():
-                st.write(f"{symbol}: {price}")
-        else:
-            st.write(response)
+            return stock_prices# Return the stock comparison result
+    investment_terms = {
+        "what is bond": "A bond is when you lend money to someone, like the government or a company, and they pay you back with interest after a while.",
+        "what is stock market": "The stock market is where people buy and sell pieces of companies, called stocks.",
+        "what is mutual fund": "A mutual fund is a pool of money collected from many investors, managed by professionals to invest in different assets like stocks and bonds.",
+        "what is roi": "ROI means Return on Investment. It's a way to measure how much profit you made relative to the cost of your investment.",
+        "what is diversification": "Diversification means spreading your investments across different areas to reduce risk. Don't put all your eggs in one basket.",
+        "what is portfolio management": "Portfolio management is the art of choosing and managing the best mix of investments to achieve your financial goals.",
+        "what is etf": "An ETF, or exchange-traded fund, is like a mutual fund, but it trades on the stock exchange like a regular stock.",
+        "what is cryptocurrency": "Cryptocurrency is a type of digital or virtual currency that uses encryption techniques to regulate the generation of units and verify the transfer of funds.",
+        "what is bitcoin": "Bitcoin is the first and most popular cryptocurrency. It's decentralized and uses blockchain technology for secure transactions.",
+        "what is inflation": "Inflation is the rate at which the general level of prices for goods and services rises, and subsequently, the purchasing power of currency falls.",
+        "what is interest rate": "An interest rate is the cost of borrowing money, typically expressed as a percentage of the principal loan amount, paid periodically.",
+        "what is asset": "An asset is something of value or a resource that can provide future economic benefits, like property, stocks, or bonds.",
+        "what is hedge fund": "A hedge fund is a pooled investment fund that uses a range of strategies to earn high returns for its investors, often with high risk.",
+        "what is ipo": "An IPO, or Initial Public Offering, is when a company offers its shares to the public for the first time, usually to raise capital.",
+        "what is commodity": "A commodity is a basic good used in commerce that is interchangeable with other goods of the same type, like gold, oil, or wheat.",
+        "what is real estate investment": "Real estate investment involves buying, owning, managing, and/or renting property for profit. It can generate regular income or long-term gains.",
+        "what is savings account": "A savings account is a bank account that earns interest on your deposits, typically used for short-term or emergency savings.",
+        "what is 401k": "A 401(k) is a retirement savings plan offered by employers that allows workers to save and invest a portion of their paycheck before taxes.",
+        "what is dividend": "A dividend is a payment made by a corporation to its shareholders, usually out of profits, in the form of cash or additional shares.",
+        "what is stock split": "A stock split occurs when a company issues additional shares to shareholders, increasing the total supply while keeping the overall value the same.",
+        "what is bear market": "A bear market is a period when the prices of securities are falling or are expected to fall, typically by 20% or more from recent highs.",
+        "what is bull market": "A bull market is when the prices of securities are rising or are expected to rise, often driven by investor confidence and economic growth.",
+        "what is private equity": "Private equity is capital invested in companies that are not listed on a public exchange. It's often used for startup financing or buyouts.",
+        "what is credit rating": "A credit rating is an evaluation of the creditworthiness of a borrower, based on their financial history and ability to repay debt.",
+        "what is stock exchange": "A stock exchange is a marketplace where stocks, bonds, and other securities are bought and sold. The New York Stock Exchange (NYSE) is one example.",
+        "what is capital gains": "Capital gains are the profits made from the sale of an asset or investment, such as stocks or property, for more than its purchase price.",
+        "what is market capitalization": "Market capitalization (market cap) is the total market value of a company's outstanding shares, calculated by multiplying the stock price by the number of shares.",
+        "what is venture capital": "Venture capital is financing provided to early-stage, high-growth companies that have the potential to grow rapidly and generate high returns.",
+        "what is leveraged buyout": "A leveraged buyout (LBO) is a financial transaction where a company is purchased using a combination of equity and borrowed money.",
+        "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500."}
+
+    for term in investment_terms:# Check if the query contains investment-related terms
+        if term in query:
+            return investment_terms[term]
+    return "Please ask a question about investment, savings, or finance stuff."
+
+st.title("Investment Chatbot")# Streamlit UI
+user_query = st.text_input("Ask a question about investments, stocks, or finance:")
+if user_query:
+    response = get_investment_info(user_query)
+    if isinstance(response, dict):
+        st.write("Stock Price Comparison:")# Display stock comparison
+        for symbol, price in response.items():
+            st.write(f"{symbol}: {price}")
+    else:
+        st.write(response)
