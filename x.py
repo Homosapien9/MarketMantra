@@ -197,9 +197,7 @@ for model_name, model in models.items():# Train models and store predictions
     model_predictions.append(model_pred)  # Store predictions
 
 model_predictions = np.array(model_predictions)# Convert list of predictions into a numpy array (shape: [n_models, n_samples])
-
 average_predictions = np.mean(model_predictions, axis=0)# Compute the average prediction (0 = Down, 1 = Up)
-
 final_predictions = np.round(average_predictions)# Round to get final prediction (0 or 1)
 
 cm = confusion_matrix(Y_valid, final_predictions)# Calculate confusion matrix based on the averaged predictions
@@ -358,7 +356,7 @@ with tab3:
         plot_volumetric_chart(df)
         
 with tab4:
-    st.subheader("Predictions for Tomorrow's Trading")
+    st.subheader("Predictions For Next Day's Trading")
     try:
         all_model_predictions = [model.predict_proba(latest_data_scaled) for model in models.values()]
 
@@ -376,10 +374,10 @@ with tab4:
         avg_prob_down = avg_probabilities[0, 0]
 
         if avg_prob_up > avg_prob_down:# Display predictions
-            st.write(":green[The stock is likely to rise tomorrow.]")
+            st.write(":green[The stock is likely to rise next working day.]")
             st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
         else:
-            st.write(":red[The stock is likely to fall tomorrow.]")
+            st.write(":red[The stock is likely to fall next working day.]")
             st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
 
     except Exception as e:
@@ -429,14 +427,13 @@ with tab5:
             st.write(f"Total Return: {total_return:,.2f}")
             st.write(f"Return Percentage: {return_percentage:,.2f}%")
         
-        st.title("Asset Investment Return Calculator")
+        st.title("Stock Investment Return Calculator")
         stock_ticker = stock_symbol# User inputs
         start_date = st.date_input("Enter Start Date", pd.to_datetime("2016-01-01"))
         investment_amount = st.number_input("Enter Investment Amount", min_value=1, value=1000000)
     
         if start_date > datetime.today().date():# Ensure the start date doesn't exceed today's date
             st.warning("Start date cannot be in the future. Using today's date instead.")
-            start_date = datetime.today().date()
         
         if stock_ticker and start_date and investment_amount:# Automatically calculate investment return when inputs are provided
             calculate_investment_return(start_date.strftime('%Y-%m-%d'), stock_ticker, investment_amount)
