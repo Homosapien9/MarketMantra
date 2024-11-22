@@ -83,14 +83,14 @@ def compute_volumetric_data(df):
 qr_image = Image.open("Website qr.png")
 col1, col2 = st.columns([3, 1])
 with col1:
-    st.markdown('<h1 style="color: white; font-size: 29.7px;">MarketMantra - An Asset Trend Predictor</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: white; font-size: 29.7px;">MarketMantra - Stock Trend Predictor</h1>', unsafe_allow_html=True)
     st.subheader("~ Developed By Jatan Shah")
 with col2:
     st.image(qr_image, caption="scan for webite", width=100)
 
-with st.expander("Select Asset And Data Range(Minimum 5 Days Gap)"):
-    st.header("Asset Selection")
-    stock_symbol = st.text_input("Select asset Ticker", value="JSWSTEEL.NS")
+with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
+    st.header("Stock Selection")
+    stock_symbol = st.text_input("Select Stock Symbol", value="JSWSTEEL.NS")
     stock_symbol = stock_symbol.upper()
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
@@ -136,11 +136,11 @@ else:
 
 with st.expander("Data Visualization"):# Data Visualization: Closing Price
     df = get_stock_data(stock_symbol, start_date, end_date)    # Fetch stock data
-    st.subheader(f"asset Data for {stock_symbol}")
+    st.subheader(f"Stock Data for {stock_symbol}")
     st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
     st.dataframe(df.tail())
     if df.empty:
-        st.warning("No data found for the selected asset or date range. Model needs atleast 5 days to predict results")
+        st.warning("No data found for the selected stock or date range. Model needs atleast 5 days to predict results")
         st.stop()
         
     st.subheader("Closing Price Over Time")
@@ -203,7 +203,7 @@ average_predictions = np.mean(model_predictions, axis=0)# Compute the average pr
 final_predictions = np.round(average_predictions)# Round to get final prediction (0 or 1)
 
 cm = confusion_matrix(Y_valid, final_predictions)# Calculate confusion matrix based on the averaged predictions
-st.subheader("Confusion Matrix (Averaged Model Predictions)")# Display confusion matrix
+st.subheader("Confusion Matrix")# Display confusion matrix
 fig, ax = plt.subplots(figsize=(6, 6))
 cax = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
 fig.colorbar(cax)
@@ -212,7 +212,7 @@ ax.set(xticks=np.arange(len(classes)),
        yticks=np.arange(len(classes)),
        xticklabels=classes, yticklabels=classes,
        title="Confusion Matrix",
-       ylabel="True Label", xlabel="Predicted Label")
+       ylabel="True Value", xlabel="Predicted Value")
 for i in range(cm.shape[0]):
     for j in range(cm.shape[1]):
         ax.text(j, i, format(cm[i, j], 'd'), ha="center", va="center", color="black")
@@ -250,7 +250,7 @@ with tab1:# Portfolio Tab
                 st.session_state['portfolio'].remove(stock)
                 st.success(f"Removed {stock} from Portfolio!")
     else:
-        st.write("No assets in your portfolio yet.")
+        st.write("No Stocks in your portfolio yet.")
         
 with tab2:# Watchlist Tab
     st.subheader("Manage Your Watchlist")
@@ -261,7 +261,7 @@ with tab2:# Watchlist Tab
                st.session_state['watchlist'].remove(stock)
                st.success(f"Removed {stock} from Watchlist!")
     else:
-        st.write("No assets in your watchlist yet.")
+        st.write("No Stocks in your watchlist yet.")
 
 with tab3:
     if sma_50:
@@ -290,7 +290,7 @@ with tab3:
 
     if macd:
         st.header("MACD (Moving Average Convergence Divergence)")
-        st.write("It helps us understand if the asset price is likely to go up or down.")
+        st.write("It helps us understand if the stock price is likely to go up or down.")
         st.write("If the **MACD line** is **higher** than the **signal line**, it means the asset price could go **up**.")
         st.write("If the **MACD line** is **lower** than the **signal line**, it means the asset price could go **down**.")
         macd_line, signal_line = compute_macd(df)
@@ -305,9 +305,9 @@ with tab3:
 
     if stochastic:
         st.header("stochastic oscillator")
-        st.write("It helps to see if a asset is high or low compared to its recent prices.")
-        st.write("If the value is above _**80**_, it might mean the asset is _**high (and could come down)**_.")
-        st.write("If the value is below _**20**_, it might mean the asset is _**low (and could go up)**_.")
+        st.write("It helps to see if a stock is high or low compared to its recent prices.")
+        st.write("If the value is above _**80**_, it might mean the stock is _**high (and could come down)**_.")
+        st.write("If the value is below _**20**_, it might mean the stock is _**low (and could go up)**_.")
         stochastic_oscillator = compute_stochastic(df)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(stochastic_oscillator, label="Stochastic Oscillator", color='green')
@@ -328,7 +328,7 @@ with tab3:
 
     if RSI:
         st.subheader("Relative Strength Index (RSI)")
-        st.write("RSI shows if a asset is overbought or oversold.")
+        st.write("RSI shows if a stock is overbought or oversold.")
         st.write("RSI above _**70**_ means that it's a good time to _**sell**_ the stock.")
         st.write("RSI below _**30**_ means that it's a good time to _**buy**_ the stock.")
         plot_rsi(df)
@@ -376,10 +376,10 @@ with tab4:
         avg_prob_down = avg_probabilities[0, 0]
 
         if avg_prob_up > avg_prob_down:# Display predictions
-            st.write(":green[The asset is likely to rise tomorrow.]")
+            st.write(":green[The stock is likely to rise tomorrow.]")
             st.metric(label="Probability (Up)", value=f"{avg_prob_up * 100:.2f}%")
         else:
-            st.write(":red[The asset is likely to fall tomorrow.]")
+            st.write(":red[The stock is likely to fall tomorrow.]")
             st.metric(label="Probability (Down)", value=f"{avg_prob_down * 100:.2f}%")
 
     except Exception as e:
@@ -391,7 +391,7 @@ with tab5:
             try:
                 hist = stock_data.history(start=start_date, end=datetime.today().strftime('%Y-%m-%d'))
                 if hist.empty:
-                    return None, f"No data available for the asset '{stock_ticker}' from {start_date}."
+                    return None, f"No data available for the stock '{stock_ticker}' from {start_date}."
                 else:
                     return hist, None
             except Exception as e:
