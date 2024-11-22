@@ -517,7 +517,8 @@ with tab6:
             "what is market capitalization": "Market capitalization (market cap) is the total market value of a company's outstanding shares, calculated by multiplying the stock price by the number of shares.",
             "what is venture capital": "Venture capital is financing provided to early-stage, high-growth companies that have the potential to grow rapidly and generate high returns.",
             "what is leveraged buyout": "A leveraged buyout (LBO) is a financial transaction where a company is purchased using a combination of equity and borrowed money.",
-            "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500."}
+            "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500.",
+            "what is sensex":"Sensex, or the S&P BSE Sensex, is the stock market index of the Bombay Stock Exchange (BSE) in India, tracking 30 large, financially stable companies across various sectors to represent the overall market performance."}
     
         for term in investment_terms:# Check if the query contains investment-related terms
             if term in query:
