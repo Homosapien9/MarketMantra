@@ -80,113 +80,33 @@ with col2:
     st.image(qr_image, caption="scan for webite", width=100)
 
 with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
-    st.header("Stock Selection")
+    # Function to fetch stock data
     def get_stock_data(stock_symbol, start_date, end_date):
         try:
-            # Fetch historical stock data
+            # Fetch historical data
             df = yf.download(stock_symbol, start=start_date, end=end_date)
             if df.empty:
                 raise ValueError(f"No data found for {stock_symbol} between {start_date} and {end_date}.")
             return df
         except Exception as e:
-            st.error(f"Error fetching stock data for {stock_symbol}: {e}")
+            st.error(f"Error fetching stock data: {e}")
             return pd.DataFrame()
     
-    # Function to fetch metadata for a single stock
-    def fetch_stock_metadata(stock_symbol):
-        try:
-            ticker = yf.Ticker(stock_symbol)
-            info = ticker.info
-            return {
-                "symbol": stock_symbol,
-                "name": info.get("shortName", "Unknown"),
-                "sector": info.get("sector", "Unknown"),
-                "industry": info.get("industry", "Unknown"),
-            }
-        except Exception:
-            return {"symbol": stock_symbol, "name": "Unknown", "sector": "Unknown", "industry": "Unknown"}
-    
-    # Function to recommend similar stocks based on sector and industry
-    def recommend_stocks(input_stock):
-        input_metadata = fetch_stock_metadata(input_stock)
-    
-        if input_metadata["sector"] == "Unknown":
-            return f"Could not fetch metadata for {input_stock}. Please check the symbol."
-    
-        try:
-            tickers = yf.Tickers()  # Fetch all tickers dynamically
-            recommendations = []
-    
-            for symbol in tickers.tickers:
-                metadata = fetch_stock_metadata(symbol)
-                if (
-                    metadata["sector"] == input_metadata["sector"]
-                    and metadata["industry"] == input_metadata["industry"]
-                    and metadata["symbol"] != input_stock
-                ):
-                    recommendations.append(metadata)
-    
-            return pd.DataFrame(recommendations) if recommendations else None
-        except Exception as e:
-            return f"Error fetching recommendations: {str(e)}"
-    
-    # Function to search stocks by partial keyword
-    def search_stocks(keyword):
-        keyword = keyword.upper()
-        try:
-            tickers = yf.Tickers()  # Fetch all tickers
-            matched_stocks = []
-    
-            for symbol in tickers.tickers:
-                metadata = fetch_stock_metadata(symbol)
-                if keyword in metadata["symbol"] or keyword in metadata["name"].upper():
-                    matched_stocks.append(metadata)
-    
-            return pd.DataFrame(matched_stocks) if matched_stocks else None
-        except Exception as e:
-            return f"Error fetching stock data: {str(e)}"
-    
     # Streamlit UI
-    st.title("Stock Data and Recommendation System")
+    st.title("Stock Data Viewer")
     
-    # User input for stock data
-    stock_symbol = st.text_input("Enter a stock symbol (e.g., AAPL, JSWSTEEL.NS):")
-    start_date = st.date_input("Start Date", datetime(2023, 1, 1), key="start_date_input")
-    end_date = st.date_input("End Date", datetime.now(), key="end_date_input")
+    # User inputs for stock data
+    stock_symbol = st.text_input("Enter a stock symbol (e.g., AAPL, RELIANCE.NS):")
+    start_date = st.date_input("Start Date", datetime(2023, 1, 1))
+    end_date = st.date_input("End Date", datetime.now())
     
     if stock_symbol:
         # Fetch and display stock data
         df = get_stock_data(stock_symbol, start_date, end_date)
         if not df.empty:
             st.subheader(f"Stock Data for {stock_symbol}")
-            st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}")
+            st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
             st.dataframe(df.tail())
-        else:
-            st.warning(f"No data found for {stock_symbol} in the selected date range.")
-    
-        # Fetch and display recommendations
-        st.subheader("Recommended Stocks")
-        recommendations = recommend_stocks(stock_symbol)
-        if isinstance(recommendations, str):
-            st.write(recommendations)
-        elif recommendations is None:
-            st.write(f"No similar stocks found for {stock_symbol}.")
-        else:
-            st.write("Here are some similar stocks:")
-            st.dataframe(recommendations)
-    
-        # Search stocks dynamically
-        st.subheader("Search Stocks by Keyword")
-        keyword = st.text_input("Enter a keyword to search for stocks (e.g., JSW, RELIANCE):")
-        if keyword:
-            search_results = search_stocks(keyword)
-            if isinstance(search_results, str):
-                st.write(search_results)
-            elif search_results is None:
-                st.write(f"No stocks found matching '{keyword}'.")
-            else:
-                st.write("Matched Stocks:")
-                st.dataframe(search_results)
 
 with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
