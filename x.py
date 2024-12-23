@@ -13,7 +13,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-
 def fetch_stock_metadata(stock_symbol):
     try:
         ticker = yf.Ticker(stock_symbol)
@@ -43,25 +42,6 @@ def search_stocks(keyword):
         return pd.DataFrame(matched_stocks) if matched_stocks else None
     except Exception as e:
         return f"Error fetching stock data: {str(e)}"
-
-# Streamlit UI
-st.title("Dynamic Stock Search System")
-
-# User input for search
-query = st.text_input("Enter a stock keyword or symbol (e.g., JSW, RELIANCE):")
-
-if query:
-    # Search for matching stocks
-    st.write("Searching for stocks...")
-    search_results = search_stocks(query)
-    if isinstance(search_results, str):  # Error message
-        st.write(search_results)
-    elif search_results is None:  # No matches found
-        st.write(f"No stocks found matching '{query}'.")
-    else:
-        st.write("Matched Stocks:")
-        st.dataframe(search_results)
-
 
 def compute_macd(df, fast=12, slow=26, signal=9):# Helper function to calculate MACD
     macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
@@ -130,7 +110,17 @@ with col2:
 
 with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     st.header("Stock Selection")
-    stock_symbol = st.text_input("Select Stock Symbol", value="^BSESN")
+    stock_symbol = st.text_input("Enter a stock keyword or symbol (e.g., JSW, RELIANCE):")
+    if stock_symbol:
+        st.write("Searching for stocks...")
+        search_results = search_stocks(stock_symbol
+        if isinstance(search_results, str):  # Error message
+            st.write(search_results)
+        elif search_results is None:  # No matches found
+            st.write(f"No stocks found matching '{stock_symbol}'.")
+        else:
+            st.write("Matched Stocks:")
+            st.dataframe(search_results)
     stock_symbol = stock_symbol.upper()
     start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
     end_date = st.date_input("End Date", datetime.now().date())
