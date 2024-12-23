@@ -113,7 +113,7 @@ with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     stock_symbol = st.text_input("Enter a stock keyword or symbol (e.g., JSW, RELIANCE):")
     if stock_symbol:
         st.write("Searching for stocks...")
-        search_results = search_stocks(stock_symbol
+        search_results = search_stocks(stock_symbol)
         if isinstance(search_results, str):  # Error message
             st.write(search_results)
         elif search_results is None:  # No matches found
