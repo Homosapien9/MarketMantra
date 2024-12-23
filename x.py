@@ -152,8 +152,7 @@ with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     end_date = st.date_input("End Date", datetime.now(), key="end_date_input")
     
     if stock_symbol:
-        # Fetch and display stock data
-        df = get_stock_data(stock_symbol, start_date, end_date)
+        df=get_stock_data(stock_symbol, start_date, end_date)
         if not df.empty:
             st.subheader(f"Stock Data for {stock_symbol}")
             st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}")
