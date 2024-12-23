@@ -229,7 +229,10 @@ else:
     volume = False
 
 with st.expander("Data Visualization"):# Data Visualization: Closing Price
-    if not df.empty:
+    df = get_stock_data(stock_symbol, start_date, end_date)
+    
+    # Check if df is not empty and contains the 'Close' column
+    if not df.empty and 'Close' in df.columns:
         st.subheader("Closing Price Over Time")
         fig, ax = plt.subplots(figsize=(15, 5))
         ax.plot(df['Close'], label='Close Price', color='blue')
@@ -241,6 +244,7 @@ with st.expander("Data Visualization"):# Data Visualization: Closing Price
         st.pyplot(fig)
     else:
         st.warning(f"No data available to plot for {stock_symbol}. Please check the symbol or date range.")
+
 
 st.header("Portfolio & Watchlist")
 col1, col2, col3, col4,= st.columns(4)
