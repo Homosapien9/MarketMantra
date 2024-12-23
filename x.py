@@ -229,15 +229,18 @@ else:
     volume = False
 
 with st.expander("Data Visualization"):# Data Visualization: Closing Price
-    st.subheader("Closing Price Over Time")
-    fig, ax = plt.subplots(figsize=(15, 5))
-    ax.plot(df['Close'], label='Close Price', color='blue')
-    ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
-    ax.set_ylabel('Price', fontsize=12)
-    ax.set_xlabel('Date', fontsize=12)
-    ax.grid(True)
-    plt.legend()
-    st.pyplot(fig)
+    if not df.empty:
+        st.subheader("Closing Price Over Time")
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax.plot(df['Close'], label='Close Price', color='blue')
+        ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
+        ax.set_ylabel('Price', fontsize=12)
+        ax.set_xlabel('Date', fontsize=12)
+        ax.grid(True)
+        plt.legend()
+        st.pyplot(fig)
+    else:
+        st.warning(f"No data available to plot for {stock_symbol}. Please check the symbol or date range.")
 
 st.header("Portfolio & Watchlist")
 col1, col2, col3, col4,= st.columns(4)
