@@ -81,7 +81,6 @@ with col2:
 
 with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
     st.header("Stock Selection")
-    # Function to fetch stock data using yfinance
     def get_stock_data(stock_symbol, start_date, end_date):
         try:
             # Fetch historical stock data
@@ -146,28 +145,35 @@ with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
             return pd.DataFrame(matched_stocks) if matched_stocks else None
         except Exception as e:
             return f"Error fetching stock data: {str(e)}"
+    
+    # Streamlit UI
+    st.title("Stock Data and Recommendation System")
+    
     # User input for stock data
     stock_symbol = st.text_input("Enter a stock symbol (e.g., AAPL, JSWSTEEL.NS):")
     start_date = st.date_input("Start Date", datetime(2023, 1, 1), key="start_date_input")
     end_date = st.date_input("End Date", datetime.now(), key="end_date_input")
     
     if stock_symbol:
-        df=get_stock_data(stock_symbol, start_date, end_date)
+        # Fetch and display stock data
+        df = get_stock_data(stock_symbol, start_date, end_date)
         if not df.empty:
             st.subheader(f"Stock Data for {stock_symbol}")
             st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}")
             st.dataframe(df.tail())
+        else:
+            st.warning(f"No data found for {stock_symbol} in the selected date range.")
     
-            # Fetch and display recommendations
-            st.subheader("Recommended Stocks")
-            recommendations = recommend_stocks(stock_symbol)
-            if isinstance(recommendations, str):
-                st.write(recommendations)
-            elif recommendations is None:
-                st.write(f"No similar stocks found for {stock_symbol}.")
-            else:
-                st.write("Here are some similar stocks:")
-                st.dataframe(recommendations)
+        # Fetch and display recommendations
+        st.subheader("Recommended Stocks")
+        recommendations = recommend_stocks(stock_symbol)
+        if isinstance(recommendations, str):
+            st.write(recommendations)
+        elif recommendations is None:
+            st.write(f"No similar stocks found for {stock_symbol}.")
+        else:
+            st.write("Here are some similar stocks:")
+            st.dataframe(recommendations)
     
         # Search stocks dynamically
         st.subheader("Search Stocks by Keyword")
