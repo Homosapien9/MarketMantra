@@ -266,6 +266,10 @@ if watchlist_add:# Add stock to watchlist
         st.success(f"{stock_symbol} added to Watchlist.")
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
+# Initialize variables to avoid NameError
+features = None
+target = None
+
 # Check if the dataframe is not empty and contains the required 'Close' column
 if not df.empty and 'Close' in df.columns:
     # Feature Engineering
@@ -274,15 +278,21 @@ if not df.empty and 'Close' in df.columns:
     df.dropna(inplace=True)  # Drop rows with missing values after feature engineering
     df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
     df.dropna(inplace=True)
-    features = df[['Previous Close', 'Daily Return']].values# Prepare features and target
+    
+    # Prepare features and target
+    features = df[['Previous Close', 'Daily Return']].values
     target = df['Target'].values
     st.write("Feature engineering completed successfully.")
 else:
     st.warning(f"The data is missing or does not contain the 'Close' column. Please check the stock symbol or date range.")
 
-scaler = StandardScaler()# Scaling features
-features_scaled = scaler.fit_transform(features)
-X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)# Split data
+# Ensure features and target are valid before proceeding
+if features is not None and target is not None:
+    scaler = StandardScaler()  # Scaling features
+    features_scaled = scaler.fit_transform(features)
+    X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)  # Split data
+else:
+    st.error("Features or target could not be prepared. Please check the data.")
 
 models = {"Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, random_state=50),
           "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=20, max_depth=20, random_state=50),
