@@ -14,10 +14,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-def get_stock_data(stock_symbol, start_date, end_date):# Define a helper function for stock data
+def get_stock_data(stock_symbol, start_date, end_date):
     try:
         df = yf.download(stock_symbol, start=start_date, end=end_date)
-        df.drop(columns=['Adj Close'], inplace=True)
+        if 'Adj Close' in df.columns:
+            df.drop(columns=['Adj Close'], inplace=True)
         return df
     except Exception as e:
         st.error(f"Error fetching stock data: {e}")
