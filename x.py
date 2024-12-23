@@ -266,13 +266,19 @@ if watchlist_add:# Add stock to watchlist
         st.success(f"{stock_symbol} added to Watchlist.")
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
-
-df['Previous Close'] = df['Close'].shift(1)# Feature Engineering and Model Preparation
-df['Daily Return'] = df['Close'].pct_change()
-df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
-df.dropna(inplace=True)
-features = df[['Previous Close', 'Daily Return']].values# Prepare features and target
-target = df['Target'].values
+# Check if the dataframe is not empty and contains the required 'Close' column
+if not df.empty and 'Close' in df.columns:
+    # Feature Engineering
+    df['Previous Close'] = df['Close'].shift(1)  # Add Previous Close column
+    df['Daily Return'] = df['Close'].pct_change()  # Add Daily Return column
+    df.dropna(inplace=True)  # Drop rows with missing values after feature engineering
+    df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
+    df.dropna(inplace=True)
+    features = df[['Previous Close', 'Daily Return']].values# Prepare features and target
+    target = df['Target'].values
+    st.write("Feature engineering completed successfully.")
+else:
+    st.warning(f"The data is missing or does not contain the 'Close' column. Please check the stock symbol or date range.")
 
 scaler = StandardScaler()# Scaling features
 features_scaled = scaler.fit_transform(features)
