@@ -14,6 +14,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
+def get_stock_data(stock_symbol, start_date, end_date):
+    try:
+        # Fetch stock data
+        df = yf.download(stock_symbol, start=start_date, end=end_date)
+        
+        # Check if 'Adj Close' exists before attempting to drop it
+        if 'Adj Close' in df.columns:
+            df.drop(columns=['Adj Close'], inplace=True)
+        
+        return df
+    except Exception as e:
+        st.error(f"Error fetching stock data: {e}")
+        return pd.DataFrame()
+
 def compute_macd(df, fast=12, slow=26, signal=9):# Helper function to calculate MACD
     macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
     signal_line = macd_line.ewm(span=signal, adjust=False).mean()
@@ -80,34 +94,11 @@ with col2:
     st.image(qr_image, caption="scan for webite", width=100)
 
 with st.expander("Select Stock And Data Range(Minimum 5 Days Gap)"):
-    # Function to fetch stock data
-    def get_stock_data(stock_symbol, start_date, end_date):
-        try:
-            # Fetch historical data
-            df = yf.download(stock_symbol, start=start_date, end=end_date)
-            if df.empty:
-                raise ValueError(f"No data found for {stock_symbol} between {start_date} and {end_date}.")
-            return df
-        except Exception as e:
-            st.error(f"Error fetching stock data: {e}")
-            return pd.DataFrame()
-    
-    # Streamlit UI
-    st.title("Stock Data Viewer")
-    
-    # User inputs for stock data
-    stock_symbol = st.text_input("Enter a stock symbol (e.g., AAPL, RELIANCE.NS):")
-    start_date = st.date_input("Start Date", datetime(2023, 1, 1))
-    end_date = st.date_input("End Date", datetime.now())
-    
-    if stock_symbol:
-        # Fetch and display stock data
-        df = get_stock_data(stock_symbol, start_date, end_date)
-        if not df.empty:
-            st.subheader(f"Stock Data for {stock_symbol}")
-            st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
-            st.dataframe(df.tail())
-
+    st.header("Stock Selection")
+    stock_symbol = st.text_input("Select Stock Symbol", value="^BSESN")
+    stock_symbol = stock_symbol.upper()
+    start_date = st.date_input("Start Date", pd.to_datetime("2024-01-01"))
+    end_date = st.date_input("End Date", datetime.now().date())
 with st.expander("Select Technical Indicators"):
     st.header("Technical Indicators")
     indicator_options = ["50-Day Simple Moving Average (SMA)","200-Day Simple Moving Average (SMA)","MACD (Moving Average Convergence Divergence)","Stochastic Oscillator","Bollinger Bands","(RSI)Relative Strength Index","Volume Chart"]
@@ -149,22 +140,23 @@ else:
     volume = False
 
 with st.expander("Data Visualization"):# Data Visualization: Closing Price
-    df = get_stock_data(stock_symbol, start_date, end_date)
-    
-    # Check if df is not empty and contains the 'Close' column
-    if not df.empty and 'Close' in df.columns:
-        st.subheader("Closing Price Over Time")
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(df['Close'], label='Close Price', color='blue')
-        ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
-        ax.set_ylabel('Price', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.grid(True)
-        plt.legend()
-        st.pyplot(fig)
-    else:
-        st.warning(f"No data available to plot for {stock_symbol}. Please check the symbol or date range.")
-
+    df = get_stock_data(stock_symbol, start_date, end_date)    # Fetch stock data
+    st.subheader(f"Stock Data for {stock_symbol}")
+    st.write(f"Historical data for {stock_symbol} from {start_date} to {end_date}, in its listed currency")
+    st.dataframe(df.tail())
+    if df.empty:
+        st.warning("No data found for the selected stock or date range. Model needs atleast 5 days to predict results")
+        st.stop()
+        
+    st.subheader("Closing Price Over Time")
+    fig, ax = plt.subplots(figsize=(15, 5))
+    ax.plot(df['Close'], label='Close Price', color='blue')
+    ax.set_title(f"{stock_symbol} - Closing Price History", fontsize=15)
+    ax.set_ylabel('Price', fontsize=12)
+    ax.set_xlabel('Date', fontsize=12)
+    ax.grid(True)
+    plt.legend()
+    st.pyplot(fig)
 
 st.header("Portfolio & Watchlist")
 col1, col2, col3, col4,= st.columns(4)
@@ -186,33 +178,17 @@ if watchlist_add:# Add stock to watchlist
         st.success(f"{stock_symbol} added to Watchlist.")
     else:
         st.warning(f"{stock_symbol} is already in your Watchlist.")
-# Initialize variables to avoid NameError
-features = None
-target = None
 
-# Check if the dataframe is not empty and contains the required 'Close' column
-if not df.empty and 'Close' in df.columns:
-    # Feature Engineering
-    df['Previous Close'] = df['Close'].shift(1)  # Add Previous Close column
-    df['Daily Return'] = df['Close'].pct_change()  # Add Daily Return column
-    df.dropna(inplace=True)  # Drop rows with missing values after feature engineering
-    df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
-    df.dropna(inplace=True)
-    
-    # Prepare features and target
-    features = df[['Previous Close', 'Daily Return']].values
-    target = df['Target'].values
-    st.write("Feature engineering completed successfully.")
-else:
-    st.warning(f"The data is missing or does not contain the 'Close' column. Please check the stock symbol or date range.")
+df['Previous Close'] = df['Close'].shift(1)# Feature Engineering and Model Preparation
+df['Daily Return'] = df['Close'].pct_change()
+df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)  # Binary target for up/down trend
+df.dropna(inplace=True)
+features = df[['Previous Close', 'Daily Return']].values# Prepare features and target
+target = df['Target'].values
 
-# Ensure features and target are valid before proceeding
-if features is not None and target is not None:
-    scaler = StandardScaler()  # Scaling features
-    features_scaled = scaler.fit_transform(features)
-    X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)  # Split data
-else:
-    st.error("Features or target could not be prepared. Please check the data.")
+scaler = StandardScaler()# Scaling features
+features_scaled = scaler.fit_transform(features)
+X_train, X_valid, Y_train, Y_valid = train_test_split(features_scaled, target, test_size=0.1, random_state=2500)# Split data
 
 models = {"Random Forest": RandomForestClassifier(n_estimators=100, max_depth=20, random_state=50),
           "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=20, max_depth=20, random_state=50),
@@ -544,8 +520,50 @@ with tab6:
             "what is venture capital": "Venture capital is financing provided to early-stage, high-growth companies that have the potential to grow rapidly and generate high returns.",
             "what is leveraged buyout": "A leveraged buyout (LBO) is a financial transaction where a company is purchased using a combination of equity and borrowed money.",
             "what is an index fund": "An index fund is a type of mutual fund or ETF designed to replicate the performance of a specific market index, like the S&P 500.",
-            "what is sensex":"Sensex, or the S&P BSE Sensex, is the stock market index of the Bombay Stock Exchange (BSE) in India, tracking 30 large, financially stable companies across various sectors to represent the overall market performance."}
-    
+            "what is sensex":"Sensex, or the S&P BSE Sensex, is the stock market index of the Bombay Stock Exchange (BSE) in India, tracking 30 large, financially stable companies across various sectors to represent the overall market performance.",
+            "what is capital": "Capital refers to money or assets used to generate income or invest in projects or businesses.",
+            "what is bear market rally": "A bear market rally is a short-term recovery in stock prices during a longer-term bear market, which often ends in a downturn.",
+            "what is leverage": "Leverage involves borrowing money to increase the potential return on an investment, but it also increases the risk of loss.",
+            "what is margin trading": "Margin trading is borrowing money from a broker to trade financial assets, allowing you to buy more than you could with your own funds.",
+            "what is short selling": "Short selling is selling a security you do not own, hoping to buy it back at a lower price to make a profit.",
+            "what is bond yield": "Bond yield is the return an investor can expect to earn on a bond, often expressed as an annual percentage rate.",
+            "what is debt-to-equity ratio": "The debt-to-equity ratio is a financial ratio that compares a company's total debt to its shareholder equity, indicating financial leverage.",
+            "what is credit default swap": "A credit default swap (CDS) is a financial derivative contract that allows investors to hedge or speculate on the credit risk of a company or government.",
+            "what is sovereign debt": "Sovereign debt is the money borrowed by a country's government, typically through the issuance of bonds.",
+            "what is quantitative easing": "Quantitative easing is a form of monetary policy in which a central bank buys government securities to increase the money supply and stimulate the economy.",
+            "what is financial derivative": "A financial derivative is a contract whose value is based on the price of an underlying asset, like options, futures, or swaps.",
+            "what is yield curve": "The yield curve is a graph that plots the interest rates of bonds with different maturity dates, often used to gauge economic conditions.",
+            "what is cost of capital": "The cost of capital is the rate of return required by investors for providing capital to a business, used in investment decision-making.",
+            "what is private placement": "Private placement is the sale of securities to a small group of institutional or accredited investors, rather than the public market.",
+            "what is an annuity": "An annuity is a financial product that provides a series of fixed payments over time, often used for retirement income.",
+            "what is income statement": "An income statement is a financial document that shows a company’s revenues, expenses, and profits over a specific period.",
+            "what is balance sheet": "A balance sheet is a financial statement that lists a company's assets, liabilities, and equity, providing a snapshot of its financial position.",
+            "what is dividend yield": "Dividend yield is a financial ratio that shows how much cash a company pays out in dividends relative to its stock price.",
+            "what is insider trading": "Insider trading refers to buying or selling a security based on non-public, material information about the company.",
+            "what is credit risk": "Credit risk is the risk that a borrower will default on a loan or bond, causing the lender to lose part or all of the investment.",
+            "what is financial leverage": "Financial leverage is the use of borrowed funds to amplify the potential return on an investment, but it increases the risk of loss.",
+            "what is risk tolerance": "Risk tolerance refers to the level of risk an investor is willing to take in their investment decisions, based on their financial situation and goals.",
+            "what is market efficiency": "Market efficiency is the degree to which market prices reflect all available information. A perfectly efficient market would reflect all known data immediately.",
+            "what is diversification strategy": "Diversification strategy involves investing in a variety of assets or asset classes to reduce overall investment risk.",
+            "what is roth ira": "A Roth IRA is a retirement account that allows your investments to grow tax-free, and withdrawals are also tax-free in retirement if certain conditions are met.",
+            "what is traditional ira": "A Traditional IRA is a retirement account where contributions may be tax-deductible, but withdrawals are taxed as income during retirement.",
+            "what is expense ratio": "The expense ratio is the annual fee that mutual funds or ETFs charge to manage an investment portfolio, expressed as a percentage of assets under management.",
+            "what is stop-loss order": "A stop-loss order is an order placed with a broker to buy or sell once a stock reaches a certain price, used to limit losses or lock in profits.",
+            "what is price-to-earnings ratio": "The price-to-earnings (P/E) ratio is a valuation ratio, calculated by dividing the stock price by the earnings per share (EPS), indicating if a stock is over or under-valued.",
+            "what is bear trap": "A bear trap occurs when a security's price briefly drops, luring short-sellers, only for the price to reverse and rise, leading to losses for those betting on a decline.",
+            "what is bull trap": "A bull trap happens when a security’s price rises, attracting buyers, only for the price to reverse and fall, causing losses for investors who bought in.",
+            "what is exchange rate": "The exchange rate is the value of one currency in terms of another, affecting international trade and investments.",
+            "what is a credit line": "A credit line is a pre-approved loan limit provided by a lender to a borrower, which can be drawn upon as needed, typically for short-term needs.",
+            "what is debt servicing": "Debt servicing refers to the payments made towards the interest and principal of debt obligations, such as loans or bonds.",
+            "what is economic moat": "An economic moat refers to a company’s ability to maintain a competitive advantage and protect itself from the competition, resulting in long-term profitability.",
+            "what is blue chip stock": "Blue chip stocks are shares in well-established, financially stable companies known for their reliability and consistent performance.",
+            "what is market volatility": "Market volatility refers to the extent of price fluctuations in a market, often indicating uncertainty or risk, and can be measured using the VIX index.",
+            "what is stock buyback": "A stock buyback occurs when a company repurchases its own shares from the market, reducing the number of outstanding shares and potentially increasing the stock price.",
+            "what is wealth management": "Wealth management is a comprehensive financial service that involves managing an individual's or family's investments, estate, tax, and retirement planning.",
+            "what is financial advisor": "A financial advisor is a professional who provides advice on investments, insurance, retirement planning, and other financial matters to individuals or businesses.",
+            "what is dollar-cost averaging": "Dollar-cost averaging is an investment strategy where you invest a fixed amount regularly, regardless of market conditions, reducing the impact of volatility.",
+            "what is real estate investment trust": "A real estate investment trust (REIT) is a company that owns, operates, or finances real estate properties, allowing investors to pool capital and earn returns through dividends."}
+
         for term in investment_terms:# Check if the query contains investment-related terms
             if term in query:
                 return investment_terms[term]
