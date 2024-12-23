@@ -14,15 +14,54 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-def get_stock_data(stock_symbol, start_date, end_date):
+def fetch_stock_metadata(stock_symbol):
     try:
-        df = yf.download(stock_symbol, start=start_date, end=end_date)
-        if 'Adj Close' in df.columns:
-            df.drop(columns=['Adj Close'], inplace=True)
-        return df
+        ticker = yf.Ticker(stock_symbol)
+        info = ticker.info
+        return {
+            "symbol": stock_symbol,
+            "name": info.get("shortName", "Unknown"),
+            "sector": info.get("sector", "Unknown"),
+            "industry": info.get("industry", "Unknown"),
+        }
+    except Exception:
+        return {"symbol": stock_symbol, "name": "Unknown", "sector": "Unknown", "industry": "Unknown"}
+
+# Function to search stocks by partial keyword
+def search_stocks(keyword):
+    keyword = keyword.upper()
+    try:
+        tickers = yf.Tickers()  # Fetch all tickers
+        matched_stocks = []
+
+        for symbol in tickers.tickers:
+            metadata = fetch_stock_metadata(symbol)
+            # Match keyword with stock symbol or name
+            if keyword in metadata["symbol"] or keyword in metadata["name"].upper():
+                matched_stocks.append(metadata)
+
+        return pd.DataFrame(matched_stocks) if matched_stocks else None
     except Exception as e:
-        st.error(f"Error fetching stock data: {e}")
-        return pd.DataFrame()
+        return f"Error fetching stock data: {str(e)}"
+
+# Streamlit UI
+st.title("Dynamic Stock Search System")
+
+# User input for search
+query = st.text_input("Enter a stock keyword or symbol (e.g., JSW, RELIANCE):")
+
+if query:
+    # Search for matching stocks
+    st.write("Searching for stocks...")
+    search_results = search_stocks(query)
+    if isinstance(search_results, str):  # Error message
+        st.write(search_results)
+    elif search_results is None:  # No matches found
+        st.write(f"No stocks found matching '{query}'.")
+    else:
+        st.write("Matched Stocks:")
+        st.dataframe(search_results)
+
 
 def compute_macd(df, fast=12, slow=26, signal=9):# Helper function to calculate MACD
     macd_line = df['Close'].ewm(span=fast, adjust=False).mean() - df['Close'].ewm(span=slow, adjust=False).mean()
