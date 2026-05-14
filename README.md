@@ -96,7 +96,7 @@ pip install -r requirements.txt
 ### 3. Run the app
 
 ```bash
-streamlit run x.py
+streamlit run marketmantra.py
 ```
 
 The app opens in your browser at `http://localhost:8501`.
@@ -129,7 +129,7 @@ pip install -r requirements.txt
 
 ```
 MarketMantra/
-├── x.py               # Main Streamlit application
+├── marketmantra.py               # Main Streamlit application
 ├── requirements.txt   # Python dependencies
 ├── Website qr.png     # QR code for deployed web app
 ├── app QR.png         # QR code for mobile app
