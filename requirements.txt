@@ -1,10 +1,12 @@
+streamlit
+requests
 numpy
 pandas
 xgboost
 yfinance
-Pillow
-streamlit
 matplotlib
 scikit-learn
-plotly
-requests
+beautifulsoup4
+Pillow
+google
+googlesearch-python
