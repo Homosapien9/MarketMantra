@@ -7,6 +7,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-App-red?style=flat-square&logo=streamlit)](https://streamlit.io)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
+MarketMantra web app - https://marketmantra-hckhdps.gamma.site/
 ---
 
 ## 🌐 Live Demo
@@ -23,7 +24,6 @@ MarketMantra lets you pick any stock (NSE, BSE, NYSE, NASDAQ, crypto — anythin
 - **ML-powered next-day trend prediction** (Up / Down) with probability scores
 - **Portfolio & watchlist** management across sessions
 - **ROI calculator** — enter an investment amount and see what it's worth today (including dividends)
-- **Investment chatbot** — ask questions about stocks or finance terminology
 
 ---
 
@@ -56,11 +56,6 @@ Add any ticker to your portfolio or watchlist, track multiple positions, and rem
 ### 📉 ROI Calculator
 Input a start date and investment amount for any ticker. MarketMantra calculates final value, total return, return percentage, and cumulative dividends earned.
 
-### 💬 Investment Chatbot
-A rule-based chatbot that:
-- Fetches live stock prices by ticker symbol (e.g. `RELIANCE.NS`)
-- Compares prices of two stocks side by side
-- Explains 60+ finance and investment terms in plain language
 
 ---
 
@@ -146,7 +141,6 @@ MarketMantra/
 4. **View prediction** — Head to the **Predictions** tab for next-day forecast with confidence percentages
 5. **Manage your portfolio** — Use the Portfolio and Watchlist tabs to track stocks
 6. **Calculate ROI** — Enter a start date and investment amount under the ROI tab
-7. **Ask the chatbot** — Type a question like *"what is RSI"* or *"price of JSWSTEEL.NS"*
 
 ---
 
