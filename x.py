@@ -467,6 +467,7 @@ with tab4:
 
 with tab5: #ROI CALC
     st.subheader("Advanced Investment Analytics")
+
     roi_start_date = st.date_input(
         "Investment Start Date",
         pd.to_datetime("2016-01-01"),
@@ -480,29 +481,33 @@ with tab5: #ROI CALC
     
     if st.button("Calculate Advanced ROI"):
         result = calculate_advanced_roi(stock_symbol, roi_start_date, investment_amount)
-    
+
     if result:
-            # ---- Metrics Row 1 ----
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Final Value", f"₹{result['Final Value']:,.0f}")
-            col2.metric("Total Return", f"{result['Total Return %']:.2f}%")
-            col3.metric("CAGR", f"{result['CAGR %']:.2f}%")
-    
-            # ---- Metrics Row 2 ----
-            col4, col5 = st.columns(2)
-            col4.metric("Volatility", f"{result['Volatility %']:.2f}%")
-            col5.metric("Sharpe Ratio", f"{result['Sharpe Ratio']:.2f}")
-    
-            # ---- Stock Growth Chart ----
-            st.subheader("Investment Growth Over Time")
-            stock_df = yf.download(stock_symbol, start=roi_start_date)
-            normalized_price = stock_df['Close'] / stock_df['Close'].iloc[0]
-            investment_growth = normalized_price * investment_amount
-            fig, ax = plt.subplots(figsize=(12,5))
-            ax.plot(investment_growth, label=f"{stock_symbol} Investment Value")
-            ax.set_ylabel("Portfolio Value (₹)")
-            ax.legend()
-            st.pyplot(fig)
+        # ---- Metrics Row 1 ----
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Final Value", f"₹{result['Final Value']:,.0f}")
+        col2.metric("Total Return", f"{result['Total Return %']:.2f}%")
+        col3.metric("CAGR", f"{result['CAGR %']:.2f}%")
+
+        # ---- Metrics Row 2 ----
+        col4, col5 = st.columns(2)
+        col4.metric("Volatility", f"{result['Volatility %']:.2f}%")
+        col5.metric("Sharpe Ratio", f"{result['Sharpe Ratio']:.2f}")
+
+        # ---- Stock Growth Chart ----
+        st.subheader("Investment Growth Over Time")
+
+        stock_df = yf.download(stock_symbol, start=roi_start_date)
+
+        normalized_price = stock_df['Close'] / stock_df['Close'].iloc[0]
+        investment_growth = normalized_price * investment_amount
+
+        fig, ax = plt.subplots(figsize=(12,5))
+        ax.plot(investment_growth, label=f"{stock_symbol} Investment Value")
+        ax.set_ylabel("Portfolio Value (₹)")
+        ax.legend()
+
+        st.pyplot(fig)
 
 # ---- Footer ----
 st.markdown("---")
