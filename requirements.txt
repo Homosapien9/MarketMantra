@@ -6,7 +6,3 @@ xgboost
 yfinance
 matplotlib
 scikit-learn
-beautifulsoup4
-Pillow
-google
-googlesearch-python
