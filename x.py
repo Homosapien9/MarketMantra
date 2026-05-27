@@ -10,8 +10,6 @@ import streamlit as st
 from datetime import datetime
 import matplotlib.pyplot as plt
 from PIL import Image
-from bs4 import BeautifulSoup
-from googlesearch import search
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, TimeSeriesSplit
 from sklearn.metrics import accuracy_score, confusion_matrix
