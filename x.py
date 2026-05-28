@@ -370,25 +370,17 @@ with tab3:
         st.header("Simple Moving Average (SMA) of 200 Days")
         st.write("The **200-day** SMA looks at the average price over the last 200 days (last 200 days shown).")
         df_raw['SMA_200'] = df_raw['Close'].rolling(window=200).mean()
-        sma200_plot = df_raw['SMA_200'].dropna()
-
-    if sma200_plot.empty:
-        st.warning("Not enough data to calculate 200-Day SMA.")
-    else:
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(sma200_plot.index, sma200_plot, label="200-Day SMA", color='green')
-        ax.set_title(f"{stock_symbol} - 200-Day Simple Moving Average", fontsize=15)
-        ax.set_ylabel('Price', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)  # last 200 valid points
-        fig, ax = plt.subplots(figsize=(15, 5))
-        ax.plot(sma200_plot.index, sma200_plot, label="200-Day SMA", color='green')
-        ax.set_title(f"{stock_symbol} - 200-Day Simple Moving Average", fontsize=15)
-        ax.set_ylabel('Price', fontsize=12)
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='best')
-        st.pyplot(fig)
+        sma200_plot = df_raw['SMA_200'].dropna() # last 200 valid points
+        if sma200_plot.empty:
+            st.warning("Not enough data to calculate 200-Day SMA.")
+        else:
+            fig, ax = plt.subplots(figsize=(15, 5))
+            ax.plot(sma200_plot.index, sma200_plot, label="200-Day SMA", color='green')
+            ax.set_title(f"{stock_symbol} - 200-Day Simple Moving Average", fontsize=15)
+            ax.set_ylabel('Price', fontsize=12)
+            ax.set_xlabel('Date', fontsize=12)
+            ax.legend(loc='best')
+            st.pyplot(fig) 
 
     if macd_ind:
         st.header("MACD (Moving Average Convergence Divergence)")
